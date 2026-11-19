@@ -58,8 +58,20 @@ type AsaasErrorBody = {
   errors?: Array<{ code?: string; description?: string }>;
 };
 
+function decodeAsaasApiKey(): string | undefined {
+  const direct = process.env.ASAAS_API_KEY?.trim();
+  if (direct) return direct;
+  const encoded = process.env.ASAAS_API_KEY_B64?.trim();
+  if (!encoded) return undefined;
+  try {
+    return Buffer.from(encoded, "base64").toString("utf8").trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function isGatewayConfigured(): boolean {
-  return Boolean(process.env.ASAAS_API_KEY && process.env.ASAAS_WEBHOOK_TOKEN);
+  return Boolean(decodeAsaasApiKey() && process.env.ASAAS_WEBHOOK_TOKEN);
 }
 
 function baseUrl(): string {
@@ -69,7 +81,8 @@ function baseUrl(): string {
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const env = serverEnv();
-  if (!env.ASAAS_API_KEY) throw new GatewayNotConfiguredError();
+  const apiKey = env.ASAAS_API_KEY ?? decodeAsaasApiKey();
+  if (!apiKey) throw new GatewayNotConfiguredError();
 
   let response: Response;
   try {
@@ -78,7 +91,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        access_token: env.ASAAS_API_KEY,
+        access_token: apiKey,
         "User-Agent": "plataforma-padarias/0.1",
         ...init.headers,
       },

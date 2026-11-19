@@ -19,6 +19,8 @@ const serverSchema = z.object({
 
   // Gateway: opcional até a Fase 06 estar ativa.
   ASAAS_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  // Base64 da chave, usado quando a plataforma de deploy expande "$" em env vars.
+  ASAAS_API_KEY_B64: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   ASAAS_WEBHOOK_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   ASAAS_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
 
