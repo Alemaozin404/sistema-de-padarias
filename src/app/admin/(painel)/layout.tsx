@@ -26,10 +26,10 @@ export default async function PlatformLayout({ children }: { children: React.Rea
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <header className="border-b border-black/10 bg-white">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-5">
-            <Link href="/admin" className="text-sm font-semibold tracking-tight">
+            <Link href="/admin" className="font-display text-lg font-semibold tracking-tight text-gradient-gold">
               Plataforma
             </Link>
             <nav className="flex flex-wrap gap-4 text-sm">

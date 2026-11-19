@@ -61,9 +61,9 @@ export default async function MarketingPage() {
 
   return (
     <div>
-      <header className="border-b border-black/5">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/30 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="font-semibold tracking-tight">Gestão para padarias</span>
+          <span className="font-display text-lg font-semibold tracking-tight text-gradient-gold">Gestão para padarias</span>
           <nav className="flex items-center gap-6 text-sm">
             <Link href="#recursos" className="hover:text-brand-700">
               Recursos
@@ -85,14 +85,16 @@ export default async function MarketingPage() {
       </header>
 
       <main>
-        <section className="mx-auto max-w-6xl px-6 py-20">
-          <p className="text-sm font-medium uppercase tracking-wider text-brand-700">
+        <section className="relative mx-auto max-w-6xl px-6 py-28 animate-fade-up">
+          <p className="text-xs font-medium uppercase tracking-[0.3em] text-brand-300">
             Tecnologia para padarias e panificadoras
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Liberdade e controle para o seu estabelecimento.
+          <h1 className="font-display mt-6 max-w-4xl text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
+            <span className="text-gradient-cinema">Liberdade e controle</span>
+            <br />
+            <span className="text-gradient-gold">para o seu estabelecimento.</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-ink-muted">
+          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-ink-muted">
             Vitrine digital, produtos, estoque e produção em uma única plataforma. Você assina
             mês a mês e mantém a autonomia sobre o seu negócio e os seus dados.
           </p>
@@ -119,8 +121,8 @@ export default async function MarketingPage() {
         <section id="recursos" className="border-y border-black/5 bg-brand-50/40">
           <div className="mx-auto grid max-w-6xl gap-8 px-6 py-16 sm:grid-cols-2">
             {BENEFITS.map((benefit) => (
-              <div key={benefit.title} className="rounded-xl bg-white p-6 shadow-sm">
-                <h3 className="font-semibold">{benefit.title}</h3>
+              <div key={benefit.title} className="glass rounded-2xl p-8 transition-transform duration-500 hover:-translate-y-1">
+                <h3 className="font-display text-xl font-semibold text-gradient-gold">{benefit.title}</h3>
                 <p className="mt-2 text-sm text-ink-muted">{benefit.text}</p>
               </div>
             ))}
@@ -144,10 +146,10 @@ export default async function MarketingPage() {
               {plans.map((plan) => (
                 <div
                   key={plan.code}
-                  className={`flex flex-col rounded-xl border p-6 ${
+                  className={`glass flex flex-col rounded-2xl p-8 transition-transform duration-500 hover:-translate-y-1 ${
                     plan.isFeatured
-                      ? "border-brand-600 ring-1 ring-brand-600"
-                      : "border-black/10"
+                      ? "glow-gold"
+                      : ""
                   }`}
                 >
                   {plan.isFeatured ? (

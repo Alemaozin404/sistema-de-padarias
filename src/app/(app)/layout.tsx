@@ -27,10 +27,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-black/5">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
           <div className="flex items-center gap-6">
-            <span className="text-sm font-semibold tracking-tight">Gestão para padarias</span>
+            <span className="font-display text-lg font-semibold tracking-tight text-gradient-gold">Gestão para padarias</span>
             <nav className="flex gap-4 text-sm">
               <Link href="/dashboard" className="text-ink-muted hover:text-brand-700">
                 Painel
@@ -99,7 +99,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       ) : null}
 
-      <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+      <main className="mx-auto max-w-6xl px-6 py-10 animate-fade-up">{children}</main>
     </div>
   );
 }
