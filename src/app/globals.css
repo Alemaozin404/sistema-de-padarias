@@ -1,33 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: oklch(97% 0.015 150);
-  --color-brand-100: oklch(94% 0.025 150);
-  --color-brand-200: oklch(89% 0.035 150);
-  --color-brand-300: oklch(82% 0.045 150);
-  --color-brand-400: oklch(74% 0.055 150);
-  --color-brand-500: oklch(65% 0.065 150);
-  --color-brand-600: oklch(56% 0.07 150);
-  --color-brand-700: oklch(47% 0.065 150);
-  --color-brand-800: oklch(38% 0.055 150);
-  --color-brand-900: oklch(28% 0.045 150);
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
 
-  --color-ink: #1f2328;
-  --color-ink-muted: #6b6560;
+  --color-navy: #0f172a;
+  --color-navy-soft: #1e293b;
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
   --color-surface: #ffffff;
-  --color-surface-soft: #f7f4ef;
-  --color-border: rgba(31, 35, 40, 0.08);
+  --color-surface-soft: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-success: #16a34a;
 }
 
 :root {
   color-scheme: light;
-  --bg-0: #f7f4ef;
-  --bg-1: #fbf9f5;
-  --bg-2: #ffffff;
-  --sage: #6b8f80;
-  --sage-bright: #8fb0a0;
-  --cream: #f7f4ef;
-  --charcoal: #1f2328;
+  --bg-0: #f8fafc;
+  --bg-1: #ffffff;
+  --navy: #0f172a;
+  --blue: #2563eb;
+  --blue-bright: #3b82f6;
+  --slate: #475569;
 }
 
 html {
@@ -37,71 +39,55 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(900px 500px at 10% -5%, rgba(107, 143, 128, 0.08), transparent 60%),
-    radial-gradient(800px 500px at 90% 0%, rgba(201, 137, 107, 0.06), transparent 60%),
-    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 50%, var(--bg-2) 100%);
-  background-attachment: fixed;
+  background: var(--bg-0);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern", "liga", "calt";
 }
 
-/* Grão muito sutil, quase imperceptível */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.012;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 .font-display {
   font-family: var(--font-display), ui-serif, Georgia, serif;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
 .font-body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Vidro claro */
+/* Superfícies */
 .glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
-  border: 1px solid rgba(31, 35, 40, 0.06);
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 12px 32px -16px rgba(31, 35, 40, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 24px -12px rgba(15, 23, 42, 0.08);
 }
 
 .glass-strong {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.75));
-  border: 1px solid rgba(31, 35, 40, 0.08);
-  backdrop-filter: blur(20px) saturate(130%);
-  -webkit-backdrop-filter: blur(20px) saturate(130%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 20px 48px -16px rgba(31, 35, 40, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 12px 32px -12px rgba(15, 23, 42, 0.10);
 }
 
 .text-gradient-cinema {
-  background: linear-gradient(120deg, #1f2328 0%, #6b8f80 100%);
+  background: linear-gradient(120deg, #0f172a 0%, #2563eb 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .text-gradient-gold {
-  background: linear-gradient(120deg, #1f2328 0%, #8a6f4a 100%);
+  background: linear-gradient(120deg, #0f172a 0%, #1d4ed8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .glow-gold {
-  box-shadow: 0 0 0 1px rgba(107, 143, 128, 0.18), 0 12px 32px -12px rgba(107, 143, 128, 0.25);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18), 0 12px 32px -12px rgba(37, 99, 235, 0.25);
 }
 
 .cinema-bg {
@@ -109,54 +95,49 @@ body::before {
   overflow: hidden;
 }
 
-@keyframes drift {
-  0% { transform: translate3d(-1%, -1%, 0) scale(1); }
-  100% { transform: translate3d(1%, 1%, 0) scale(1.02); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-float {
-  animation: float 7s ease-in-out infinite;
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .animate-fade-up {
   animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Superfícies claras e suaves */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Ajustes de superfícies existentes */
 .bg-white {
   background: #ffffff !important;
-  border-color: rgba(31, 35, 40, 0.06) !important;
+  border-color: #e2e8f0 !important;
   color: var(--color-ink);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 24px -12px rgba(31, 35, 40, 0.10);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .bg-brand-50 {
-  background: rgba(107, 143, 128, 0.08) !important;
+  background: #eff6ff !important;
 }
 
 .bg-brand-50\/40 {
-  background: rgba(107, 143, 128, 0.05) !important;
+  background: #f0f7ff !important;
 }
 
 .border-black\/5,
 .border-black\/10,
 .border-black\/15 {
-  border-color: rgba(31, 35, 40, 0.08) !important;
+  border-color: #e2e8f0 !important;
 }
 
 .shadow-sm,
 .shadow {
-  box-shadow: 0 8px 24px -12px rgba(31, 35, 40, 0.10) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
 }
 
 .text-ink {
@@ -167,60 +148,56 @@ body::before {
   color: var(--color-ink-muted) !important;
 }
 
-/* Inputs */
 input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   background: #ffffff !important;
-  border: 1px solid rgba(31, 35, 40, 0.10) !important;
+  border: 1px solid #cbd5e1 !important;
   color: var(--color-ink) !important;
 }
 
 input::placeholder {
-  color: rgba(31, 35, 40, 0.40) !important;
+  color: #94a3b8 !important;
 }
 
-/* Botões de marca: sage suave */
 .bg-brand-600 {
-  background: linear-gradient(135deg, #6b8f80 0%, #5a7a6c 100%) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(107, 143, 128, 0.3) !important;
-  box-shadow: 0 8px 20px -8px rgba(107, 143, 128, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.3) !important;
+  box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.35);
 }
 
 .bg-brand-600:hover,
 .hover\:bg-brand-700:hover {
-  background: linear-gradient(135deg, #7a9e8e 0%, #6b8f80 100%) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
   color: #ffffff !important;
 }
 
 .text-brand-700,
 .hover\:text-brand-700:hover {
-  color: #5a7a6c !important;
+  color: #1d4ed8 !important;
 }
 
 :focus-visible {
-  outline: 2px solid #6b8f80;
+  outline: 2px solid #2563eb;
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(107, 143, 128, 0.15);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
-/* Scrollbar suave */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(31, 35, 40, 0.02);
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(31, 35, 40, 0.18);
+  background: #cbd5e1;
   border-radius: 999px;
 }
 
-/* Redução de movimento */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
