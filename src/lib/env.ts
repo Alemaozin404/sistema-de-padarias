@@ -8,30 +8,33 @@ import { z } from "zod";
  * Nenhum módulo lê `process.env` diretamente — tudo passa por aqui.
  */
 
+const emptyToUndefined = (value: unknown) =>
+  typeof value === "string" && value.trim() === "" ? undefined : value;
+
 const serverSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL é obrigatória"),
-  DATABASE_URL_UNPOOLED: z.string().min(1).optional(),
+  DATABASE_URL_UNPOOLED: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET deve ter ao menos 32 caracteres"),
   BETTER_AUTH_URL: z.url(),
 
   // Gateway: opcional até a Fase 06 estar ativa.
-  ASAAS_API_KEY: z.string().min(1).optional(),
-  ASAAS_WEBHOOK_TOKEN: z.string().min(1).optional(),
-  ASAAS_BASE_URL: z.url().optional(),
+  ASAAS_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  ASAAS_WEBHOOK_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  ASAAS_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
 
-  RESEND_API_KEY: z.string().min(1).optional(),
-  EMAIL_FROM: z.string().min(1).optional(),
+  RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  EMAIL_FROM: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 
-  R2_ACCOUNT_ID: z.string().min(1).optional(),
-  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
-  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-  R2_BUCKET: z.string().min(1).optional(),
+  R2_ACCOUNT_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  R2_ACCESS_KEY_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  R2_SECRET_ACCESS_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  R2_BUCKET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 
-  UPSTASH_REDIS_REST_URL: z.url().optional(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  UPSTASH_REDIS_REST_URL: z.preprocess(emptyToUndefined, z.url().optional()),
+  UPSTASH_REDIS_REST_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 
-  CRON_SECRET: z.string().min(16).optional(),
-  SENTRY_DSN: z.string().min(1).optional(),
+  CRON_SECRET: z.preprocess(emptyToUndefined, z.string().min(16).optional()),
+  SENTRY_DSN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 });
 
 const publicSchema = z.object({
