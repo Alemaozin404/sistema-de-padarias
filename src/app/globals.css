@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: oklch(97% 0.02 65);
+  --color-brand-100: oklch(94% 0.04 65);
+  --color-brand-500: oklch(62% 0.14 55);
+  --color-brand-600: oklch(55% 0.15 50);
+  --color-brand-700: oklch(47% 0.13 48);
+  --color-ink: oklch(24% 0.02 60);
+  --color-ink-muted: oklch(48% 0.02 60);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: white;
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}

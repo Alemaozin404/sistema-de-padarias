@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "invoices_one_open_per_subscription" ON "invoices" USING btree ("subscription_id") WHERE "invoices"."status" in ('OPEN', 'OVERDUE');
