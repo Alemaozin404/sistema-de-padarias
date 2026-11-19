@@ -20,7 +20,7 @@ export default async function LoginPage() {
       <Link href="/" className="text-sm text-ink-muted hover:text-brand-700">
         ← Voltar ao site
       </Link>
-      <h1 className="font-display mt-6 text-3xl font-semibold tracking-tight text-gradient-cinema">Entrar na plataforma</h1>
+      <h1 className="font-display mt-6 text-3xl font-semibold tracking-tight text-ink">Entrar na plataforma</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Acesse o painel do seu estabelecimento.
       </p>

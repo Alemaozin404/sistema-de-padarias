@@ -27,10 +27,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
           <div className="flex items-center gap-6">
-            <span className="font-display text-lg font-semibold tracking-tight text-gradient-gold">Gestão para padarias</span>
+            <span className="font-display text-lg font-semibold tracking-tight text-brand-700">Gestão para padarias</span>
             <nav className="flex gap-4 text-sm">
               <Link href="/dashboard" className="text-ink-muted hover:text-brand-700">
                 Painel

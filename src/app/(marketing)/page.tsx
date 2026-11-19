@@ -61,9 +61,9 @@ export default async function MarketingPage() {
 
   return (
     <div>
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/30 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="font-display text-lg font-semibold tracking-tight text-gradient-gold">Gestão para padarias</span>
+          <span className="font-display text-lg font-semibold tracking-tight text-brand-700">Gestão para padarias</span>
           <nav className="flex items-center gap-6 text-sm">
             <Link href="#recursos" className="hover:text-brand-700">
               Recursos
@@ -89,10 +89,10 @@ export default async function MarketingPage() {
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-brand-300">
             Tecnologia para padarias e panificadoras
           </p>
-          <h1 className="font-display mt-6 max-w-4xl text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
-            <span className="text-gradient-cinema">Liberdade e controle</span>
+          <h1 className="font-display mt-6 max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-6xl">
+            Liberdade e controle
             <br />
-            <span className="text-gradient-gold">para o seu estabelecimento.</span>
+            <span className="text-brand-700">para o seu estabelecimento.</span>
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-ink-muted">
             Vitrine digital, produtos, estoque e produção em uma única plataforma. Você assina
@@ -122,7 +122,7 @@ export default async function MarketingPage() {
           <div className="mx-auto grid max-w-6xl gap-8 px-6 py-16 sm:grid-cols-2">
             {BENEFITS.map((benefit) => (
               <div key={benefit.title} className="glass rounded-2xl p-8 transition-transform duration-500 hover:-translate-y-1">
-                <h3 className="font-display text-xl font-semibold text-gradient-gold">{benefit.title}</h3>
+                <h3 className="font-display text-xl font-semibold text-ink">{benefit.title}</h3>
                 <p className="mt-2 text-sm text-ink-muted">{benefit.text}</p>
               </div>
             ))}

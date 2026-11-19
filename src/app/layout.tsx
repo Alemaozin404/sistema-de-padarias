@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
 const bodyFont = Inter({
@@ -8,11 +8,11 @@ const bodyFont = Inter({
   display: "swap",
 });
 
-const displayFont = Playfair_Display({
+const displayFont = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${bodyFont.variable} ${displayFont.variable}`}>
       <body className="min-h-screen antialiased font-body">
-        <div className="cinema-bg min-h-screen">{children}</div>
+        <div className="min-h-screen">{children}</div>
       </body>
     </html>
   );
