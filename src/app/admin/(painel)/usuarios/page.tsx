@@ -12,16 +12,16 @@ export default async function PlatformUsersPage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">MASTER CONTROL</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Usuários</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Usuários</h1>
         <p className="mt-1 text-sm text-ink-muted">{users.length} conta(s) cadastrada(s).</p>
       </div>
-      <a href="/api/admin/export?kind=users" className="inline-block rounded-lg border border-black/15 px-3 py-2 text-sm font-medium hover:bg-black/5">
+      <a href="/api/admin/export?kind=users" className="inline-block rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-black/5">
         Exportar CSV
       </a>
 
-      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-border bg-white">
         <table className="w-full min-w-[900px] text-sm">
-          <thead className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-ink-muted">
+          <thead className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-muted">
             <tr>
               <th className="px-4 py-3">Usuário</th>
               <th className="px-4 py-3">Status</th>
@@ -34,7 +34,7 @@ export default async function PlatformUsersPage() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} className="border-b border-black/5 last:border-0">
+              <tr key={user.id} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
                   <p className="font-medium">{user.name}</p>
                   <p className="text-xs text-ink-muted">{user.email}</p>

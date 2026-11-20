@@ -4,16 +4,18 @@ import { getDb } from "@/lib/db";
 import { securityEvents, webhookEvents } from "@/db/schema";
 import { serverEnv } from "@/lib/env";
 import { constantTimeTokenEqual } from "@/modules/billing/rules";
-import { processAsaasEvent, type AsaasEvent } from "@/modules/billing/webhook";
+import { processMercadoPagoEvent, type MercadoPagoNotification } from "@/modules/billing/webhook";
+import crypto from "node:crypto";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const eventSchema = z
   .object({
-    id: z.string().min(1),
-    event: z.string().min(1),
-    payment: z.record(z.string(), z.unknown()).optional(),
+    id: z.union([z.string(), z.number()]).optional(),
+    action: z.string().optional(),
+    type: z.string().optional(),
+    data: z.object({ id: z.union([z.string(), z.number()]).optional() }).optional(),
   })
   .passthrough();
 
@@ -21,32 +23,40 @@ function json(body: Record<string, unknown>, status: number): Response {
   return Response.json(body, { status });
 }
 
-/**
- * Webhook Asaas.
- *
- * Contrato:
- *  - token no header `asaas-access-token`, comparado em tempo constante;
- *  - `id` do evento é a chave de idempotência (`UNIQUE (gateway, event_id)`);
- *  - reenvio de evento já processado responde 200 sem repetir efeito;
- *  - evento com falha fica FAILED e o próximo reenvio tenta de novo;
- *  - falha responde 5xx para o gateway reenviar.
- */
+function verifySignature(
+  xSignature: string,
+  xRequestId: string,
+  dataId: string,
+  secret: string,
+): boolean {
+  if (!xSignature || !xRequestId || !dataId || !secret) return false;
+
+  const parts = Object.fromEntries(
+    xSignature.split(",").map((part) => {
+      const [key, ...value] = part.trim().split("=");
+      return [key, value.join("=")];
+    }),
+  );
+
+  const ts = parts.ts;
+  const v1 = parts.v1;
+  if (!ts || !v1) return false;
+
+  const manifest = `id:${dataId.toLowerCase()};request-id:${xRequestId};ts:${ts};`;
+  const expected = crypto.createHmac("sha256", secret).update(manifest).digest("hex");
+  if (expected.length !== v1.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1));
+}
+
 export async function POST(request: Request): Promise<Response> {
   const env = serverEnv();
-  if (!env.ASAAS_WEBHOOK_TOKEN) {
-    return json({ error: "Webhook não configurado." }, 503);
-  }
-
-  const provided = request.headers.get("asaas-access-token") ?? "";
-  if (!constantTimeTokenEqual(provided, env.ASAAS_WEBHOOK_TOKEN)) {
-    await recordInvalidSignature(request);
-    return json({ error: "Token inválido." }, 401);
-  }
+  const url = new URL(request.url);
+  const queryDataId = url.searchParams.get("data.id") ?? url.searchParams.get("data_id") ?? "";
 
   const raw = await request.text();
   let parsedJson: unknown;
   try {
-    parsedJson = JSON.parse(raw);
+    parsedJson = raw ? JSON.parse(raw) : null;
   } catch {
     return json({ error: "Payload inválido." }, 400);
   }
@@ -55,14 +65,31 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return json({ error: "Evento inválido." }, 400);
 
   const body = parsed.data;
+  const dataId = queryDataId || (body.data?.id != null ? String(body.data.id) : "");
+  const eventId =
+    body.id != null ? String(body.id) : dataId ? `${dataId}:${body.action ?? body.type ?? "event"}` : null;
+
+  if (!eventId) return json({ error: "Evento sem identificador." }, 400);
+
+  if (env.MP_WEBHOOK_SECRET) {
+    const xSignature = request.headers.get("x-signature") ?? "";
+    const xRequestId = request.headers.get("x-request-id") ?? "";
+    if (!verifySignature(xSignature, xRequestId, dataId, env.MP_WEBHOOK_SECRET)) {
+      await recordInvalidSignature(request);
+      return json({ error: "Assinatura inválida." }, 401);
+    }
+  } else {
+    return json({ error: "Webhook não configurado." }, 503);
+  }
+
   const db = getDb();
 
   const [created] = await db
     .insert(webhookEvents)
     .values({
-      gateway: "ASAAS",
-      eventId: body.id,
-      eventType: body.event,
+      gateway: "MERCADOPAGO",
+      eventId,
+      eventType: body.type ?? body.action ?? "payment",
       payload: body as never,
       status: "RECEIVED",
     })
@@ -76,18 +103,13 @@ export async function POST(request: Request): Promise<Response> {
     const [existing] = await db
       .select({ id: webhookEvents.id, status: webhookEvents.status })
       .from(webhookEvents)
-      .where(
-        and(eq(webhookEvents.gateway, "ASAAS"), eq(webhookEvents.eventId, body.id)),
-      )
+      .where(and(eq(webhookEvents.gateway, "MERCADOPAGO"), eq(webhookEvents.eventId, eventId)))
       .limit(1);
 
     if (!existing || (existing.status !== "FAILED" && existing.status !== "RECEIVED")) {
       return json({ received: true, duplicate: true }, 200);
     }
 
-    // Retentativa de evento FAILED ou de RECEIVED travado (processo caiu no meio).
-    // RECEIVED só é reivindicado depois de 10 minutos, para não atropelar uma
-    // entrega concorrente que ainda está processando.
     const [claimed] = await db
       .update(webhookEvents)
       .set({ status: "RECEIVED", lastError: null })
@@ -96,10 +118,7 @@ export async function POST(request: Request): Promise<Response> {
           eq(webhookEvents.id, existing.id),
           or(
             eq(webhookEvents.status, "FAILED"),
-            and(
-              eq(webhookEvents.status, "RECEIVED"),
-              lt(webhookEvents.receivedAt, new Date(Date.now() - 10 * 60 * 1000)),
-            ),
+            and(eq(webhookEvents.status, "RECEIVED"), lt(webhookEvents.receivedAt, new Date(Date.now() - 10 * 60 * 1000))),
           ),
         ),
       )
@@ -112,7 +131,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const result = await processAsaasEvent(body as AsaasEvent);
+    const result = await processMercadoPagoEvent(body as MercadoPagoNotification);
     await db
       .update(webhookEvents)
       .set({
@@ -131,7 +150,6 @@ export async function POST(request: Request): Promise<Response> {
       .set({ status: "FAILED", attempts, lastError: message })
       .where(eq(webhookEvents.id, eventRowId));
 
-    // Não devolvemos o detalhe ao gateway; ele fica no evento para diagnóstico.
     return json({ error: "Falha ao processar evento." }, 500);
   }
 }
@@ -143,7 +161,7 @@ async function recordInvalidSignature(request: Request): Promise<void> {
       severity: "WARNING",
       ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
       userAgent: request.headers.get("user-agent"),
-      detail: { endpoint: "/api/webhooks/asaas" },
+      detail: { endpoint: "/api/webhooks/mercadopago" },
     });
   } catch {
     // Segurança nunca deve derrubar o endpoint por falha de log.

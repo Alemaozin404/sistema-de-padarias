@@ -40,9 +40,9 @@ export default async function ProductionPage() {
       <div className="space-y-4">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Produção</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Fichas e fornadas</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Fichas e fornadas</h1>
         </div>
-        <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
           {loaded
             ? "A gestão de produção está disponível no plano Empresarial. Fale com o suporte para fazer upgrade."
             : "Nenhuma assinatura ativa encontrada. Fale com o suporte."}
@@ -67,7 +67,7 @@ export default async function ProductionPage() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Produção</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Fichas e fornadas</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Fichas e fornadas</h1>
         <p className="mt-1 text-sm text-ink-muted">
           {activeRecipes.length}{" "}
           {activeRecipes.length === 1 ? "ficha ativa" : "fichas ativas"} ·{" "}
@@ -85,14 +85,14 @@ export default async function ProductionPage() {
       ) : null}
 
       {!canWrite ? (
-        <p className="rounded-lg border border-black/10 p-4 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-4 text-sm text-ink-muted">
           Você pode consultar as fichas e o histórico, mas os lançamentos estão suspensos por
           pendência financeira.
         </p>
       ) : null}
 
       {canWrite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Nova ficha técnica</h2>
           <p className="mt-1 text-xs text-ink-muted">
             O rendimento é o total que a ficha inteira produz. Os insumos são adicionados na
@@ -111,13 +111,13 @@ export default async function ProductionPage() {
         <h2 className="text-sm font-semibold">Fichas técnicas</h2>
 
         {recipes.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhuma ficha cadastrada. {canWrite ? "Crie a primeira acima." : ""}
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Ficha</th>
                   <th className="px-4 py-3 font-medium">Produto</th>
@@ -135,7 +135,7 @@ export default async function ProductionPage() {
                       : 0;
 
                   return (
-                    <tr key={recipe.id} className="border-t border-black/5">
+                    <tr key={recipe.id} className="border-t border-border">
                       <td className="px-4 py-3">
                         <Link
                           href={`/producao/receitas/${recipe.id}`}
@@ -176,7 +176,7 @@ export default async function ProductionPage() {
       </section>
 
       {canWrite && plannable.length > 0 ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Planejar fornada</h2>
           <p className="mt-1 text-xs text-ink-muted">
             Planejar não move estoque. O consumo e a entrada do produto acontecem na conclusão.
@@ -195,7 +195,7 @@ export default async function ProductionPage() {
       ) : null}
 
       {canWrite && activeRecipes.length > 0 && plannable.length === 0 ? (
-        <p className="rounded-lg border border-black/10 p-4 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-4 text-sm text-ink-muted">
           Adicione insumos a uma ficha para poder planejar fornadas.
         </p>
       ) : null}
@@ -204,13 +204,13 @@ export default async function ProductionPage() {
         <h2 className="text-sm font-semibold">Fornadas</h2>
 
         {batches.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhuma fornada registrada.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Planejada em</th>
                   <th className="px-4 py-3 font-medium">Ficha</th>
@@ -223,7 +223,7 @@ export default async function ProductionPage() {
               </thead>
               <tbody>
                 {batches.map((batch) => (
-                  <tr key={batch.id} className="border-t border-black/5">
+                  <tr key={batch.id} className="border-t border-border">
                     <td className="px-4 py-3 text-ink-muted">
                       {batch.plannedAt.toLocaleDateString("pt-BR")}
                     </td>

@@ -16,7 +16,7 @@ export default async function CadastroPage({
       <Link href="/" className="text-sm text-ink-muted hover:text-brand-700">
         ← Voltar ao site
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight">Cadastrar sua padaria</h1>
+      <h1 className="mt-6 font-display text-2xl font-bold tracking-tight text-ink">Cadastrar sua padaria</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Um estabelecimento, seus próprios dados e usuários. Leva alguns minutos.
       </p>

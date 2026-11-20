@@ -39,7 +39,7 @@ export default async function PlanosPage() {
         <div className="mt-10 overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-black/10 text-left">
+              <tr className="border-b border-border text-left">
                 <th className="py-3 pr-4 font-medium text-ink-muted">Recurso</th>
                 {plans.map((plan) => (
                   <th key={plan.code} className="py-3 pr-4">
@@ -63,7 +63,7 @@ export default async function PlanosPage() {
                 if (!label) return null;
 
                 return (
-                  <tr key={key} className="border-b border-black/5">
+                  <tr key={key} className="border-b border-border">
                     <td className="py-3 pr-4">{label.name}</td>
                     {plans.map((plan) => {
                       const feature = plan.features.find((item) => item.key === key);

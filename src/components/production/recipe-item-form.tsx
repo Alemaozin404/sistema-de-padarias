@@ -11,7 +11,7 @@ type Props = {
 };
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:border-brand-600";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand-600";
 
 export function RecipeItemForm({ recipeId, ingredients }: Props) {
   const [state, formAction, pending] = useActionState(addRecipeItemAction, initialState);

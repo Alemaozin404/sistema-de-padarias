@@ -19,7 +19,7 @@ export function CategoryForm() {
           name="name"
           required
           placeholder="Nova categoria (ex.: Pães)"
-          className="rounded-lg border border-black/15 px-3 py-2 text-sm"
+          className="rounded-lg border border-border px-3 py-2 text-sm"
         />
         {state.fieldErrors?.name ? (
           <p className="mt-1 text-xs text-red-700">{state.fieldErrors.name}</p>
@@ -29,7 +29,7 @@ export function CategoryForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-black/15 px-3 py-2 text-sm font-medium hover:border-brand-600 disabled:opacity-60"
+        className="rounded-lg border border-border px-3 py-2 text-sm font-medium hover:border-brand-600 disabled:opacity-60"
       >
         {pending ? "Criando…" : "Criar categoria"}
       </button>

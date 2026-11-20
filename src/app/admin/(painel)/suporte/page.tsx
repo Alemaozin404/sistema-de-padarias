@@ -13,11 +13,11 @@ export default async function PlatformSupportPage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">MASTER CONTROL</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Suporte</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Suporte</h1>
         <p className="mt-1 text-sm text-ink-muted">Clientes que exigem acompanhamento.</p>
       </div>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Clientes com pendência</h2>
         {attention.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum cliente com pendência.</p>
@@ -37,7 +37,7 @@ export default async function PlatformSupportPage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Incidentes abertos</h2>
         {system.incidents.filter((incident) => incident.status !== "RESOLVED").length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum incidente aberto.</p>

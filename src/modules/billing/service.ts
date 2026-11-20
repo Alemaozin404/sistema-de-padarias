@@ -8,18 +8,22 @@ import {
   plans,
   subscriptions,
   subscriptionStatusHistory,
+  subscriptionGrants,
   tenantDiscounts,
   tenants,
 } from "@/db/schema";
 import {
   createCustomer,
   createPixPayment,
+  createCardPayment,
   findCustomerByDocument,
   findPaymentByExternalReference,
   getPayment,
+  cancelPayment,
   getPixQrCode,
-  type AsaasPayment,
+  type MercadoPagoPayment,
 } from "./gateway";
+import { getActiveGrant, grantDiscountCents } from "@/modules/promotions/grants";
 import {
   centsFromGateway,
   externalReferenceFor,
@@ -209,12 +213,24 @@ export async function createInitialInvoice(input: {
   const negotiated = await withTenant(input.tenantId, (tx) =>
     activeDiscount(tx, input.tenantId, todayIso()),
   );
-  const discountCents = resolveDiscountCents(context.subscription.priceCents, negotiated);
+  const negotiatedDiscount = resolveDiscountCents(context.subscription.priceCents, negotiated);
+
+  const grant = await getActiveGrant(input.tenantId, context.subscription.id);
+  const grantDiscount = grant ? grantDiscountCents(grant, context.subscription.priceCents) : 0;
+  const waiveActivation =
+    !!grant && grant.waiveActivationFee && activationAmountCents > 0 && !paid;
+  const activationDiscount = waiveActivation ? activationAmountCents : 0;
+
+  const discountCents = Math.min(
+    context.subscription.priceCents + activationAmountCents,
+    negotiatedDiscount + grantDiscount + activationDiscount,
+  );
   const totalCents = invoiceTotalCents({
     planAmountCents: context.subscription.priceCents,
     activationAmountCents,
     discountCents,
   });
+  const appliedGrantId = grant?.id ?? null;
   const description = `${context.plan.name} — ${
     kind === "INITIAL" ? "primeira mensalidade + ativação" : "renovação mensal"
   }`;
@@ -234,6 +250,7 @@ export async function createInitialInvoice(input: {
           totalCents,
           dueDate,
           description,
+          appliedGrantId,
         })
         .returning();
 
@@ -280,6 +297,25 @@ export async function ensureChargeForInvoice(input: {
   if (!invoice) throw new BillingError("NOT_FOUND", "Fatura não encontrada.");
   if (invoice.status === "PAID" || invoice.status === "VOID" || invoice.status === "REFUNDED") {
     return invoice;
+  }
+
+  if (invoice.totalCents === 0) {
+    await applyConfirmedPayment({
+      tenantId: input.tenantId,
+      invoiceId: invoice.id,
+      gateway: "PROMOTION",
+      gatewayPaymentId: `promotion:${invoice.id}`,
+      method: "PROMOTIONAL",
+      amountCents: 0,
+      paidAt: new Date(),
+      raw: { source: "promotion", invoiceId: invoice.id },
+      actorType: "USER",
+      actorId: input.actorId,
+      gatewayInvoiceId: null,
+    });
+    const updated = await getInvoice(input.tenantId, invoice.id);
+    if (!updated) throw new BillingError("NOT_FOUND", "Fatura não encontrada.");
+    return updated;
   }
 
   const context = await loadBillingContext(input.tenantId);
@@ -336,7 +372,7 @@ export async function ensureChargeForInvoice(input: {
 
   const externalReference = externalReferenceFor(input.tenantId, invoice.id);
 
-  let charge: AsaasPayment | null = null;
+  let charge: MercadoPagoPayment | null = null;
   if (invoice.gatewayInvoiceId) {
     charge = await getPayment(invoice.gatewayInvoiceId);
   } else {
@@ -345,25 +381,26 @@ export async function ensureChargeForInvoice(input: {
       (await createPixPayment({
         customerId,
         valueCents: invoice.totalCents,
-        dueDate: invoice.dueDate,
         description: invoice.description ?? `Fatura ${invoice.kind}`,
         externalReference,
+        payerEmail: context.tenant.email ?? "cliente@padaria.com",
+        payerDocument: document,
       }));
   }
 
   const qrCode = await getPixQrCode(charge.id);
-  const expiresAt = qrCode.expirationDate ? new Date(qrCode.expirationDate) : null;
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
   const [updated] = await withTenant(input.tenantId, async (tx) => {
     const rows = await tx
       .update(invoices)
       .set({
         status: invoice.status === "OVERDUE" ? "OVERDUE" : "OPEN",
-        gateway: "ASAAS",
+        gateway: "MERCADOPAGO",
         gatewayInvoiceId: charge.id,
-        invoiceUrl: charge.invoiceUrl ?? undefined,
+        invoiceUrl: charge.ticket_url ?? charge.point_of_interaction?.transaction_data?.ticket_url ?? undefined,
         pixPayload: qrCode.payload,
-        pixExpiresAt: expiresAt && !Number.isNaN(expiresAt.getTime()) ? expiresAt : null,
+        pixExpiresAt: expiresAt,
         updatedAt: new Date(),
       })
       .where(and(eq(invoices.id, invoice.id), eq(invoices.tenantId, input.tenantId)))
@@ -376,7 +413,7 @@ export async function ensureChargeForInvoice(input: {
       action: "invoice.charge_created",
       entityType: "invoice",
       entityId: invoice.id,
-      after: { gateway: "ASAAS", gatewayInvoiceId: charge.id, totalCents: invoice.totalCents },
+      after: { gateway: "MERCADOPAGO", gatewayInvoiceId: charge.id, totalCents: invoice.totalCents },
     });
 
     return rows;
@@ -384,6 +421,74 @@ export async function ensureChargeForInvoice(input: {
 
   if (!updated) throw new Error("Falha ao atualizar a fatura com a cobrança.");
   return updated;
+}
+
+/** Pagamento com cartão via token gerado no frontend (Payment Brick). */
+export async function processCardPayment(input: {
+  tenantId: string;
+  invoiceId: string;
+  actorId: string;
+  token: string;
+  installments: number;
+  paymentMethodId: string;
+  issuerId?: string | null;
+  payerEmail: string;
+  payerDocument?: string | null;
+}): Promise<{ status: string; paymentId: string }> {
+  const invoice = await getInvoice(input.tenantId, input.invoiceId);
+  if (!invoice) throw new BillingError("NOT_FOUND", "Fatura não encontrada.");
+  if (invoice.status === "PAID") return { status: "approved", paymentId: invoice.gatewayInvoiceId ?? "" };
+
+  const context = await loadBillingContext(input.tenantId);
+  const document = input.payerDocument ?? context.tenant.document;
+  if (!document || !isValidDocument(document)) {
+    throw new BillingError("DOCUMENT_REQUIRED", "Informe um CPF ou CNPJ válido.");
+  }
+
+  const externalReference = externalReferenceFor(input.tenantId, invoice.id);
+  const payment = await createCardPayment({
+    token: input.token,
+    valueCents: invoice.totalCents,
+    installments: input.installments,
+    paymentMethodId: input.paymentMethodId,
+    issuerId: input.issuerId,
+    description: invoice.description ?? `Fatura ${invoice.kind}`,
+    externalReference,
+    payerEmail: input.payerEmail,
+    payerDocument: document,
+  });
+
+  if (payment.status === "approved") {
+    const amount = centsFromGateway(payment.transaction_amount);
+    if (amount !== null) {
+      await applyConfirmedPayment({
+        tenantId: input.tenantId,
+        invoiceId: invoice.id,
+        gateway: "MERCADOPAGO",
+        gatewayPaymentId: payment.id,
+        method: "CARD",
+        amountCents: amount,
+        paidAt: payment.date_approved ?? payment.date_created,
+        raw: payment,
+        actorType: "USER",
+        actorId: input.actorId,
+        gatewayInvoiceId: payment.id,
+      });
+    }
+  }
+
+  await withTenant(input.tenantId, (tx) =>
+    tx
+      .update(invoices)
+      .set({
+        gateway: "MERCADOPAGO",
+        gatewayInvoiceId: invoice.gatewayInvoiceId ?? payment.id,
+        updatedAt: new Date(),
+      })
+      .where(eq(invoices.id, invoice.id)),
+  );
+
+  return { status: payment.status ?? "unknown", paymentId: payment.id };
 }
 
 /** Checkout completo: fatura + cliente + Pix. */
@@ -425,7 +530,7 @@ export type ConfirmedPayment = {
   amountCents: number;
   paidAt?: PaidAtInput;
   raw?: unknown;
-  actorType: "GATEWAY" | "ADMIN" | "SYSTEM";
+  actorType: "GATEWAY" | "ADMIN" | "SYSTEM" | "USER";
   actorId?: string | null;
   gatewayInvoiceId?: string | null;
   invoiceUrl?: string | null;
@@ -570,6 +675,17 @@ export async function applyConfirmedPayment(
       }
     }
 
+    if (invoice.appliedGrantId) {
+      await tx
+        .update(subscriptionGrants)
+        .set({
+          cyclesUsed: sql`${subscriptionGrants.cyclesUsed} + 1`,
+          status: sql`CASE WHEN ${subscriptionGrants.durationCycles} IS NOT NULL AND ${subscriptionGrants.cyclesUsed} + 1 >= ${subscriptionGrants.durationCycles} THEN 'CONSUMED' ELSE ${subscriptionGrants.status} END`,
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptionGrants.id, invoice.appliedGrantId));
+    }
+
     await tx.insert(auditLogs).values({
       tenantId: input.tenantId,
       actorType: input.actorType,
@@ -702,6 +818,61 @@ export async function markInvoiceRefunded(input: {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cancelamento de cobrança                                                   */
+/* -------------------------------------------------------------------------- */
+
+export async function cancelInvoice(input: {
+  tenantId: string;
+  invoiceId: string;
+  actorId?: string | null;
+  reason?: string | null;
+}): Promise<InvoiceRow> {
+  const invoice = await getInvoice(input.tenantId, input.invoiceId);
+  if (!invoice) throw new BillingError("NOT_FOUND", "Fatura não encontrada.");
+
+  if (invoice.status === "PAID") {
+    throw new BillingError("PAYMENT_CONFLICT", "Fatura paga não pode ser cancelada; estorne o pagamento.");
+  }
+  if (invoice.status === "VOID") {
+    return invoice;
+  }
+  if (invoice.status === "REFUNDED") {
+    throw new BillingError("PAYMENT_CONFLICT", "Fatura estornada não pode ser cancelada.");
+  }
+
+  if (invoice.gatewayInvoiceId) {
+    await cancelPayment(invoice.gatewayInvoiceId);
+  }
+
+  const [updated] = await withTenant(input.tenantId, async (tx) => {
+    const rows = await tx
+      .update(invoices)
+      .set({ status: "VOID", updatedAt: new Date() })
+      .where(and(eq(invoices.id, invoice.id), eq(invoices.tenantId, input.tenantId)))
+      .returning();
+
+    await tx.insert(auditLogs).values({
+      tenantId: input.tenantId,
+      actorType: input.actorId ? "USER" : "SYSTEM",
+      actorId: input.actorId ?? null,
+      action: "invoice.cancelled",
+      entityType: "invoice",
+      entityId: invoice.id,
+      before: { status: invoice.status },
+      after: { status: "VOID", reason: input.reason ?? null },
+    });
+
+    return rows;
+  });
+
+  if (!updated) throw new BillingError("NOT_FOUND", "Fatura não encontrada.");
+  return updated;
+}
+
+export const voidInvoice = cancelInvoice;
+export const cancelCharge = cancelInvoice;
+
+/* -------------------------------------------------------------------------- */
 /* Conciliação e renovação                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -725,32 +896,38 @@ export async function reconcileInvoice(input: {
 
   const payment = await getPayment(invoice.gatewayInvoiceId);
 
-  if (payment.status === "RECEIVED" || payment.status === "CONFIRMED") {
-    const amount = centsFromGateway(payment.value);
+  if (payment.status === "approved") {
+    const amount = centsFromGateway(payment.transaction_amount);
     if (amount === null) throw new BillingError("AMOUNT_MISMATCH", "Gateway sem valor de pagamento.");
 
     await applyConfirmedPayment({
       tenantId: input.tenantId,
       invoiceId: invoice.id,
-      gateway: "ASAAS",
+      gateway: "MERCADOPAGO",
       gatewayPaymentId: payment.id,
-      method: mapPaymentMethod(payment.billingType),
+      method: mapPaymentMethod(payment.payment_type_id ?? payment.payment_method_id),
       amountCents: amount,
-      paidAt: payment.paymentDate ?? payment.confirmedDate ?? payment.clientPaymentDate,
+      paidAt: payment.date_approved ?? payment.date_created,
       raw: payment,
       actorType: "SYSTEM",
       gatewayInvoiceId: payment.id,
-      invoiceUrl: payment.invoiceUrl,
+      invoiceUrl: payment.ticket_url ?? undefined,
     });
 
     return { status: "PAID" };
   }
 
-  if (["OVERDUE", "REFUNDED", "DELETED"].includes(payment.status)) {
-    if (payment.status === "OVERDUE") {
-      await markInvoiceOverdue({ tenantId: input.tenantId, invoiceId: invoice.id });
-      return { status: "OVERDUE" };
-    }
+  if (payment.status === "rejected" || payment.status === "cancelled") {
+    return { status: "SKIPPED" };
+  }
+
+  if (payment.status === "refunded" || payment.status === "charged_back") {
+    await markInvoiceRefunded({
+      tenantId: input.tenantId,
+      invoiceId: invoice.id,
+      gateway: "MERCADOPAGO",
+      gatewayPaymentId: payment.id,
+    });
     return { status: "SKIPPED" };
   }
 
@@ -776,6 +953,7 @@ export async function generateRenewalInvoices(now: Date = new Date()): Promise<n
   // Emite a renovação até 3 dias antes: é o que permite o lembrete D-3.
   const horizon = todayIso(horizonDate);
   let created = 0;
+  const promoInvoices: Array<{ tenantId: string; invoiceId: string }> = [];
 
   for (const tenantId of await listActiveTenantIds()) {
     const result = await withTenant(tenantId, async (tx) => {
@@ -819,14 +997,19 @@ export async function generateRenewalInvoices(now: Date = new Date()): Promise<n
         .limit(1);
 
       const negotiated = await activeDiscount(tx, tenantId, todayIso(now));
-      const discountCents = resolveDiscountCents(subscription.priceCents, negotiated);
+      const negotiatedDiscount = resolveDiscountCents(subscription.priceCents, negotiated);
+
+      const grant = await getActiveGrant(tenantId, subscription.id);
+      const grantDiscount = grant ? grantDiscountCents(grant, subscription.priceCents) : 0;
+      const discountCents = Math.min(subscription.priceCents, negotiatedDiscount + grantDiscount);
       const totalCents = invoiceTotalCents({
         planAmountCents: subscription.priceCents,
         activationAmountCents: 0,
         discountCents,
       });
+      const appliedGrantId = grant?.id ?? null;
 
-      await tx.insert(invoices).values({
+      const [createdInvoice] = await tx.insert(invoices).values({
         tenantId,
         subscriptionId: subscription.id,
         kind: "RENEWAL",
@@ -837,7 +1020,12 @@ export async function generateRenewalInvoices(now: Date = new Date()): Promise<n
         totalCents,
         dueDate: subscription.nextDueDate,
         description: `${plan?.name ?? "Plano"} — renovação mensal`,
-      });
+        appliedGrantId,
+      }).returning();
+
+      if (totalCents === 0 && createdInvoice) {
+        promoInvoices.push({ tenantId, invoiceId: createdInvoice.id });
+      }
 
       await tx.insert(auditLogs).values({
         tenantId,
@@ -851,6 +1039,24 @@ export async function generateRenewalInvoices(now: Date = new Date()): Promise<n
     });
 
     if (result) created += 1;
+  }
+
+  for (const item of promoInvoices) {
+    try {
+      await applyConfirmedPayment({
+        tenantId: item.tenantId,
+        invoiceId: item.invoiceId,
+        gateway: "PROMOTION",
+        gatewayPaymentId: `promotion:${item.invoiceId}`,
+        method: "PROMOTIONAL",
+        amountCents: 0,
+        paidAt: new Date(),
+        raw: { source: "promotion" },
+        actorType: "SYSTEM",
+      });
+    } catch {
+      // não interrompe a geração das demais faturas
+    }
   }
 
   return created;

@@ -22,7 +22,7 @@ export function CopyLinkButton({ url, label, copiedLabel }: Props) {
     <button
       type="button"
       onClick={copy}
-      className="rounded-lg border border-black/15 px-3 py-2 text-sm hover:border-brand-600"
+      className="rounded-lg border border-border px-3 py-2 text-sm hover:border-brand-600"
     >
       {copied ? copiedLabel : label}
     </button>

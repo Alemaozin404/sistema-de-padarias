@@ -47,7 +47,7 @@ export default async function TeamPage() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Equipe</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Usuários do estabelecimento</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Usuários do estabelecimento</h1>
         <p className="mt-1 text-sm text-ink-muted">
           {seats} {seats === 1 ? "assento ocupado" : "assentos ocupados"}
           {limit !== null ? ` de ${limit} no plano` : " · sem limite no seu plano"}
@@ -65,7 +65,7 @@ export default async function TeamPage() {
       ) : null}
 
       {canInvite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Convidar pessoa</h2>
           <p className="mt-1 text-xs text-ink-muted">
             O convite expira em 7 dias. Quem aceitar passa a acessar apenas este estabelecimento.
@@ -77,7 +77,7 @@ export default async function TeamPage() {
       ) : null}
 
       {invites.length > 0 ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Convites pendentes</h2>
           <ul className="mt-3 divide-y divide-black/5">
             {invites.map((invite) => (
@@ -110,9 +110,9 @@ export default async function TeamPage() {
         </section>
       ) : null}
 
-      <section className="overflow-x-auto rounded-xl border border-black/10">
+      <section className="overflow-x-auto rounded-2xl border border-border bg-surface">
         <table className="w-full text-sm">
-          <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+          <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Pessoa</th>
               <th className="px-4 py-3 font-medium">Perfil</th>
@@ -122,7 +122,7 @@ export default async function TeamPage() {
           </thead>
           <tbody>
             {members.map((member) => (
-              <tr key={member.id} className="border-t border-black/5">
+              <tr key={member.id} className="border-t border-border">
                 <td className="px-4 py-3">
                   <p className="font-medium">{member.name}</p>
                   <p className="text-xs text-ink-muted">{member.email}</p>
@@ -134,7 +134,7 @@ export default async function TeamPage() {
                       <select
                         name="role"
                         defaultValue={member.role}
-                        className="rounded-lg border border-black/15 px-2 py-1 text-xs"
+                        className="rounded-lg border border-border px-2 py-1 text-xs"
                       >
                         <option value="STAFF">Equipe</option>
                         <option value="MANAGER">Gerente</option>

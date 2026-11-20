@@ -54,7 +54,7 @@ async function run(request: Request): Promise<Response> {
     {
       target: "GATEWAY",
       status: gateway ? "UP" : "DEGRADED",
-      detail: gateway ? "Asaas configurado." : "ASAAS_API_KEY ausente; cobrança online indisponível.",
+      detail: gateway ? "Mercado Pago configurado." : "MP_ACCESS_TOKEN ausente; cobrança online indisponível.",
     },
     {
       target: "EMAIL",

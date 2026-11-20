@@ -11,7 +11,7 @@ type Props = {
 };
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:border-brand-600";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand-600";
 
 export function CompleteBatchForm({ batchId, plannedQuantity }: Props) {
   const [state, formAction, pending] = useActionState(completeBatchAction, initialState);
@@ -94,7 +94,7 @@ export function CompleteBatchForm({ batchId, plannedQuantity }: Props) {
         <input type="hidden" name="lossReason" value="" />
       )}
 
-      <p className="rounded-lg bg-black/[0.03] p-3 text-xs text-ink-muted">
+      <p className="rounded-lg bg-surface-sunken p-3 text-xs text-ink-muted">
         Ao concluir, os insumos da ficha são consumidos pelo fator (produzidas + perdas) ÷
         rendimento, o produto acabado entra no estoque e o custo por unidade é gravado no lote.
         Se faltar insumo, nada é alterado.

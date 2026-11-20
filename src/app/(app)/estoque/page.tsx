@@ -47,9 +47,9 @@ export default async function InventoryPage({
       <div className="space-y-4">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Estoque</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Controle de estoque</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Controle de estoque</h1>
         </div>
-        <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
           {loaded
             ? "O controle de estoque está disponível nos planos Profissional e Empresarial. Fale com o suporte para fazer upgrade."
             : "Nenhuma assinatura ativa encontrada. Fale com o suporte."}
@@ -82,7 +82,7 @@ export default async function InventoryPage({
     <div className="space-y-8">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Estoque</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Insumos</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Insumos</h1>
         <p className="mt-1 text-sm text-ink-muted">
           {activeIngredients.length}{" "}
           {activeIngredients.length === 1 ? "insumo ativo" : "insumos ativos"}
@@ -100,7 +100,7 @@ export default async function InventoryPage({
       ) : null}
 
       {!canWrite ? (
-        <p className="rounded-lg border border-black/10 p-4 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-4 text-sm text-ink-muted">
           Você pode consultar o estoque, mas os lançamentos estão suspensos por pendência
           financeira. Seus dados continuam disponíveis para consulta e exportação.
         </p>
@@ -124,7 +124,7 @@ export default async function InventoryPage({
       ) : null}
 
       {canWrite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Cadastrar insumo</h2>
           <p className="mt-1 text-xs text-ink-muted">
             O saldo começa em zero e só muda por movimento. Entradas, saídas, ajustes e perdas
@@ -142,25 +142,25 @@ export default async function InventoryPage({
             name="q"
             defaultValue={params.q ?? ""}
             placeholder="Buscar insumo"
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="rounded-lg border border-border px-3 py-2 text-sm"
           />
           <button
             type="submit"
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm hover:border-brand-600"
+            className="rounded-lg border border-border px-3 py-2 text-sm hover:border-brand-600"
           >
             Filtrar
           </button>
         </form>
 
         {ingredients.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhum insumo cadastrado.{" "}
             {canWrite ? "Cadastre o primeiro acima e registre a entrada inicial." : ""}
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Insumo</th>
                   <th className="px-4 py-3 font-medium">Saldo</th>
@@ -178,7 +178,7 @@ export default async function InventoryPage({
                   });
 
                   return (
-                    <tr key={ingredient.id} className="border-t border-black/5">
+                    <tr key={ingredient.id} className="border-t border-border">
                       <td className="px-4 py-3">
                         <Link
                           href={`/estoque/${ingredient.id}`}
@@ -241,7 +241,7 @@ export default async function InventoryPage({
       </section>
 
       {canWrite && activeIngredients.length > 0 ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Registrar movimento</h2>
           <p className="mt-1 text-xs text-ink-muted">
             Movimento é imutável. Para corrigir um lançamento, registre um ajuste com o motivo.
@@ -270,13 +270,13 @@ export default async function InventoryPage({
         </div>
 
         {movements.rows.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhum movimento registrado ainda.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Data</th>
                   <th className="px-4 py-3 font-medium">Insumo</th>
@@ -299,7 +299,7 @@ export default async function InventoryPage({
                         : "−";
 
                   return (
-                    <tr key={movement.id} className="border-t border-black/5">
+                    <tr key={movement.id} className="border-t border-border">
                       <td className="px-4 py-3 text-ink-muted">
                         {movement.createdAt.toLocaleString("pt-BR", {
                           dateStyle: "short",

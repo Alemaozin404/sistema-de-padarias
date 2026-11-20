@@ -44,7 +44,7 @@ export default async function PlatformCouponsPage({
     <div className="space-y-8">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Plataforma</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Cupons e descontos</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Cupons e descontos</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Descontos negociados com vigência entram nas próximas faturas do cliente. Cupons
           ficam cadastrados para resgate no checkout.
@@ -70,7 +70,7 @@ export default async function PlatformCouponsPage({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <form action={createCouponAction} className="space-y-3 rounded-xl border border-black/10 bg-white p-5">
+        <form action={createCouponAction} className="space-y-3 rounded-xl border border-border bg-white p-5">
           <h2 className="text-sm font-semibold">Novo cupom</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -83,7 +83,7 @@ export default async function PlatformCouponsPage({
                 required
                 disabled={!canAct}
                 placeholder="BEMVINDO10"
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm uppercase"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm uppercase"
               />
             </div>
             <div>
@@ -94,7 +94,7 @@ export default async function PlatformCouponsPage({
                 id="coupon-type"
                 name="discountType"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <option value="PERCENT">Percentual</option>
                 <option value="FIXED">Valor fixo (R$)</option>
@@ -111,7 +111,7 @@ export default async function PlatformCouponsPage({
                 disabled={!canAct}
                 inputMode="decimal"
                 placeholder="10 ou 19,90"
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -122,7 +122,7 @@ export default async function PlatformCouponsPage({
                 id="coupon-plan"
                 name="planId"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <option value="">Todos</option>
                 {plans.map((plan) => (
@@ -141,7 +141,7 @@ export default async function PlatformCouponsPage({
                 name="validFrom"
                 type="date"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -153,7 +153,7 @@ export default async function PlatformCouponsPage({
                 name="validTo"
                 type="date"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -166,7 +166,7 @@ export default async function PlatformCouponsPage({
               name="maxRedemptions"
               inputMode="numeric"
               disabled={!canAct}
-              className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
             />
           </div>
           {canAct ? (
@@ -181,7 +181,7 @@ export default async function PlatformCouponsPage({
 
         <form
           action={createTenantDiscountAction}
-          className="space-y-3 rounded-xl border border-black/10 bg-white p-5"
+          className="space-y-3 rounded-xl border border-border bg-white p-5"
         >
           <h2 className="text-sm font-semibold">Desconto negociado por cliente</h2>
           <div>
@@ -193,7 +193,7 @@ export default async function PlatformCouponsPage({
               name="tenantId"
               required
               disabled={!canAct}
-              className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
             >
               <option value="">Selecione</option>
               {tenants.map((tenant) => (
@@ -212,7 +212,7 @@ export default async function PlatformCouponsPage({
                 id="discount-type"
                 name="discountType"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <option value="PERCENT">Percentual</option>
                 <option value="FIXED">Valor fixo (R$)</option>
@@ -228,7 +228,7 @@ export default async function PlatformCouponsPage({
                 required
                 inputMode="decimal"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -241,7 +241,7 @@ export default async function PlatformCouponsPage({
                 type="date"
                 required
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -253,7 +253,7 @@ export default async function PlatformCouponsPage({
                 name="validTo"
                 type="date"
                 disabled={!canAct}
-                className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -267,7 +267,7 @@ export default async function PlatformCouponsPage({
               required
               rows={2}
               disabled={!canAct}
-              className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
             />
           </div>
           {canAct ? (
@@ -281,7 +281,7 @@ export default async function PlatformCouponsPage({
         </form>
       </div>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Cupons cadastrados</h2>
         {couponRows.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum cupom cadastrado.</p>
@@ -301,7 +301,7 @@ export default async function PlatformCouponsPage({
               </thead>
               <tbody>
                 {couponRows.map(({ coupon, planName }) => (
-                  <tr key={coupon.id} className="border-t border-black/5">
+                  <tr key={coupon.id} className="border-t border-border">
                     <td className="py-2 font-mono text-xs">{coupon.code}</td>
                     <td className="py-2">{discountLabel(coupon.discountType, coupon.value)}</td>
                     <td className="py-2">{planName ?? "Todos"}</td>
@@ -338,7 +338,7 @@ export default async function PlatformCouponsPage({
         </p>
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Descontos negociados</h2>
         {discounts.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum desconto registrado.</p>
@@ -355,7 +355,7 @@ export default async function PlatformCouponsPage({
               </thead>
               <tbody>
                 {discounts.map((discount) => (
-                  <tr key={discount.id} className="border-t border-black/5">
+                  <tr key={discount.id} className="border-t border-border">
                     <td className="py-2">{discount.tradeName}</td>
                     <td className="py-2">
                       {discountLabel(discount.discountType, discount.value)}

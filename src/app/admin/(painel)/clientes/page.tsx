@@ -27,7 +27,7 @@ export default async function PlatformClientsPage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Plataforma</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Clientes</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Clientes</h1>
           <p className="mt-1 text-sm text-ink-muted">
             {overview.totalTenants} estabelecimento(s), {overview.activeClients} ativo(s).
           </p>
@@ -45,9 +45,9 @@ export default async function PlatformClientsPage({
         </p>
       ) : null}
 
-      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-border bg-white">
         <table className="w-full min-w-[820px] text-sm">
-          <thead className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-ink-muted">
+          <thead className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-muted">
             <tr>
               <th className="px-4 py-3">Estabelecimento</th>
               <th className="px-4 py-3">Plano</th>
@@ -62,7 +62,7 @@ export default async function PlatformClientsPage({
             {overview.clients.map((client) => {
               const status = client.subscriptionStatus ?? "—";
               return (
-                <tr key={client.tenantId} className="border-b border-black/5 last:border-0">
+                <tr key={client.tenantId} className="border-b border-border last:border-0">
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/clientes/${client.tenantId}`}

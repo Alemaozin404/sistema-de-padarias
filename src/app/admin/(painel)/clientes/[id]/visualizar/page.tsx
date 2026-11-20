@@ -26,30 +26,30 @@ export default async function PlatformClientViewPage({ params }: { params: Promi
         <Link href={`/admin/clientes/${id}`} className="text-sm text-ink-muted hover:text-brand-700">
           ← Voltar ao cliente
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Visualização: {detail.tenant.tradeName}</h1>
+        <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">Visualização: {detail.tenant.tradeName}</h1>
         <p className="text-sm text-ink-muted">Modo consulta. Todas as ações administrativas são auditadas.</p>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Produtos</p>
           <p className="mt-2 text-2xl font-semibold">{usage.productCount}</p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Assinatura</p>
           <p className="mt-2 text-lg font-semibold">{detail.current?.status ?? "—"}</p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Mensalidade</p>
           <p className="mt-2 text-lg font-semibold">{formatBRL(detail.current?.priceCents ?? 0)}</p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Faturas recentes</p>
           <p className="mt-2 text-lg font-semibold">{detail.invoices.length}</p>
         </div>
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Atividades recentes do cliente</h2>
         {logs.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum evento.</p>

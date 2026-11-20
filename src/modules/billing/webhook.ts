@@ -1,4 +1,5 @@
-import type { AsaasPayment } from "./gateway";
+import type { MercadoPagoPayment } from "./gateway";
+import { getPayment } from "./gateway";
 import {
   applyConfirmedPayment,
   getInvoice,
@@ -7,35 +8,36 @@ import {
 } from "./service";
 import {
   centsFromGateway,
-  isPaidEvent,
   mapPaymentMethod,
   parseExternalReference,
 } from "./rules";
 
 /**
- * Efeito de um evento Asaas. Só age em cobranças criadas por nós
- * (`externalReference = tenantId:invoiceId`) e confere a fatura antes de mudar
- * qualquer estado financeiro.
+ * Efeito de uma notificação do Mercado Pago. O endpoint valida a assinatura,
+ * registra o evento e chama esta função. Ela consulta o pagamento na API antes
+ * de mudar qualquer estado financeiro.
  */
-export type AsaasEvent = {
-  id: string;
-  event: string;
-  payment?: AsaasPayment;
+
+export type MercadoPagoNotification = {
+  id?: string | number;
+  action?: string;
+  type?: string;
+  data?: { id?: string | number };
 };
 
 export type ProcessedEvent = "PROCESSED" | "IGNORED";
 
-export async function processAsaasEvent(event: AsaasEvent): Promise<ProcessedEvent> {
-  const payment = event.payment;
-  if (!payment?.id) return "IGNORED";
+export async function processMercadoPagoEvent(
+  notification: MercadoPagoNotification,
+): Promise<ProcessedEvent> {
+  const paymentId =
+    notification.data?.id != null ? String(notification.data.id) : null;
+  if (!paymentId) return "IGNORED";
 
-  const actionable =
-    isPaidEvent(event.event) ||
-    event.event === "PAYMENT_OVERDUE" ||
-    event.event === "PAYMENT_REFUNDED";
-  if (!actionable) return "IGNORED";
+  const payment = await getPaymentFromGateway(paymentId);
+  if (!payment) return "IGNORED";
 
-  const reference = parseExternalReference(payment.externalReference);
+  const reference = parseExternalReference(payment.external_reference);
   if (!reference) return "IGNORED";
 
   const invoice = await getInvoice(reference.tenantId, reference.invoiceId);
@@ -49,43 +51,49 @@ export async function processAsaasEvent(event: AsaasEvent): Promise<ProcessedEve
     );
   }
 
-  if (event.event === "PAYMENT_OVERDUE") {
-    await markInvoiceOverdue({
+  const status = payment.status ?? "";
+
+  if (status === "approved") {
+    const amountCents = centsFromGateway(payment.transaction_amount);
+    if (amountCents === null) {
+      throw new Error("Evento de pagamento sem valor válido.");
+    }
+
+    await applyConfirmedPayment({
       tenantId: reference.tenantId,
       invoiceId: invoice.id,
+      gateway: "MERCADOPAGO",
+      gatewayPaymentId: payment.id,
+      method: mapPaymentMethod(payment.payment_type_id ?? payment.payment_method_id),
+      amountCents,
+      paidAt: payment.date_approved ?? payment.date_created,
+      raw: payment,
       actorType: "GATEWAY",
+      gatewayInvoiceId: payment.id,
+      invoiceUrl: payment.ticket_url ?? undefined,
     });
+
     return "PROCESSED";
   }
 
-  if (event.event === "PAYMENT_REFUNDED") {
+  if (status === "refunded" || status === "charged_back") {
     await markInvoiceRefunded({
       tenantId: reference.tenantId,
       invoiceId: invoice.id,
-      gateway: "ASAAS",
+      gateway: "MERCADOPAGO",
       gatewayPaymentId: payment.id,
     });
     return "PROCESSED";
   }
 
-  const amountCents = centsFromGateway(payment.value);
-  if (amountCents === null) {
-    throw new Error("Evento de pagamento sem valor válido.");
-  }
-
-  await applyConfirmedPayment({
-    tenantId: reference.tenantId,
-    invoiceId: invoice.id,
-    gateway: "ASAAS",
-    gatewayPaymentId: payment.id,
-    method: mapPaymentMethod(payment.billingType),
-    amountCents,
-    paidAt: payment.paymentDate ?? payment.confirmedDate ?? payment.clientPaymentDate,
-    raw: payment,
-    actorType: "GATEWAY",
-    gatewayInvoiceId: payment.id,
-    invoiceUrl: payment.invoiceUrl,
-  });
-
+  // pending, in_process, rejected, cancelled, etc.: não altera estado financeiro.
   return "PROCESSED";
+}
+
+async function getPaymentFromGateway(paymentId: string): Promise<MercadoPagoPayment | null> {
+  try {
+    return await getPayment(paymentId);
+  } catch {
+    return null;
+  }
 }

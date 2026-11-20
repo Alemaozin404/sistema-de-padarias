@@ -16,7 +16,7 @@ export default async function ResetPasswordPage({
       <Link href="/login" className="text-sm text-ink-muted hover:text-brand-700">
         ← Voltar para o login
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight">Criar nova senha</h1>
+      <h1 className="mt-6 font-display text-2xl font-bold tracking-tight text-ink">Criar nova senha</h1>
 
       {error ? (
         <div className="mt-6 space-y-4">
@@ -41,7 +41,7 @@ export default async function ResetPasswordPage({
           </p>
           <Link
             href="/esqueci-senha"
-            className="inline-block rounded-lg border border-black/15 px-4 py-2.5 text-sm hover:border-brand-600"
+            className="inline-block rounded-lg border border-border px-4 py-2.5 text-sm hover:border-brand-600"
           >
             Solicitar novo link
           </Link>

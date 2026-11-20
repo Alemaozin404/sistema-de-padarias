@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import {
+  cancelChargeAction,
   createChargeAction,
   reconcileInvoiceAction,
   startCheckoutAction,
@@ -11,7 +12,7 @@ import {
 const initialState: BillingActionState = {};
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:border-brand-600";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand-600";
 
 function Feedback({ state }: { state: BillingActionState }) {
   return (
@@ -82,6 +83,24 @@ export function ChargeForm({ invoiceId }: { invoiceId: string }) {
         className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
       >
         {pending ? "Gerando cobrança…" : "Gerar cobrança Pix desta fatura"}
+      </button>
+    </form>
+  );
+}
+
+export function CancelChargeForm({ invoiceId }: { invoiceId: string }) {
+  const [state, formAction, pending] = useActionState(cancelChargeAction, initialState);
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <input type="hidden" name="invoiceId" value={invoiceId} />
+      <Feedback state={state} />
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg border border-red-600 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+      >
+        {pending ? "Cancelando…" : "Cancelar cobrança"}
       </button>
     </form>
   );

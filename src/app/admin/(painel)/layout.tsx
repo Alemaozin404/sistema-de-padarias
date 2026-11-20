@@ -20,6 +20,7 @@ const NAV = [
   { href: "/admin/seguranca", label: "Segurança" },
   { href: "/admin/auditoria", label: "Auditoria" },
   { href: "/admin/cupons", label: "Cupons" },
+  { href: "/admin/promocoes", label: "Promoções" },
   { href: "/admin/configuracoes", label: "Configurações" },
   { href: "/admin/sistema", label: "Sistema" },
 ];
@@ -35,7 +36,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-5">
             <Link href="/admin" className="font-display text-lg font-semibold tracking-tight text-brand-700">

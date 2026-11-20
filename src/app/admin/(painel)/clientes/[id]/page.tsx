@@ -41,7 +41,7 @@ export default async function PlatformClientPage({
         </Link>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{tenant.tradeName}</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-ink">{tenant.tradeName}</h1>
             <p className="text-sm text-ink-muted">
               /{tenant.slug} · criado em {dateLabel(tenant.createdAt)}
             </p>
@@ -78,7 +78,7 @@ export default async function PlatformClientPage({
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-xl border border-black/10 bg-white p-5 lg:col-span-2">
+        <section className="rounded-xl border border-border bg-white p-5 lg:col-span-2">
           <h2 className="text-sm font-semibold">Assinatura</h2>
           <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
             <div>
@@ -110,7 +110,7 @@ export default async function PlatformClientPage({
                   id="planId"
                   name="planId"
                   defaultValue={current.planId}
-                  className="mt-1 rounded-lg border border-black/15 px-3 py-2 text-sm"
+                  className="mt-1 rounded-lg border border-border px-3 py-2 text-sm"
                 >
                   {plans.map((plan) => (
                     <option key={plan.id} value={plan.id}>
@@ -129,7 +129,7 @@ export default async function PlatformClientPage({
           ) : null}
         </section>
 
-        <section className="rounded-xl border border-black/10 bg-white p-5">
+        <section className="rounded-xl border border-border bg-white p-5">
           <h2 className="text-sm font-semibold">Acesso do cliente</h2>
           <p className="mt-2 text-xs text-ink-muted">
             Suspender o tenant bloqueia o painel operacional, mas preserva leitura,
@@ -160,7 +160,7 @@ export default async function PlatformClientPage({
         </section>
       </div>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold">Faturas recentes</h2>
           <Link href={`/admin/clientes/${tenant.id}/visualizar`} className="text-xs text-brand-700 hover:underline">
@@ -187,7 +187,7 @@ export default async function PlatformClientPage({
                 {invoices.map((invoice) => {
                   const payable = invoice.status === "OPEN" || invoice.status === "OVERDUE";
                   return (
-                    <tr key={invoice.id} className="border-t border-black/5 align-top">
+                    <tr key={invoice.id} className="border-t border-border align-top">
                       <td className="py-2">{invoice.kind}</td>
                       <td className="py-2">{invoice.status}</td>
                       <td className="py-2">{invoice.dueDate}</td>
@@ -201,7 +201,7 @@ export default async function PlatformClientPage({
                             <select
                               name="method"
                               aria-label="Método do pagamento"
-                              className="rounded border border-black/15 px-1.5 py-1 text-xs"
+                              className="rounded border border-border px-1.5 py-1 text-xs"
                             >
                               <option value="PIX">Pix</option>
                               <option value="CARD">Cartão</option>

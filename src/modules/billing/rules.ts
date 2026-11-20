@@ -5,7 +5,7 @@ import { timingSafeEqual } from "node:crypto";
  * contas que precisam bater entre a fatura, o checkout e o webhook.
  */
 
-export type PaymentMethod = "PIX" | "CARD" | "BOLETO";
+export type PaymentMethod = "PIX" | "CARD" | "BOLETO" | "PROMOTIONAL";
 
 export type InvoiceAmounts = {
   planAmountCents: number;
@@ -176,14 +176,10 @@ export function isPaidEvent(eventType: string): boolean {
 }
 
 export function mapPaymentMethod(billingType: unknown): PaymentMethod {
-  switch (billingType) {
-    case "CREDIT_CARD":
-      return "CARD";
-    case "BOLETO":
-      return "BOLETO";
-    default:
-      return "PIX";
-  }
+  const value = typeof billingType === "string" ? billingType.toLowerCase() : "";
+  if (value.includes("card")) return "CARD";
+  if (value.includes("boleto") || value.includes("ticket")) return "BOLETO";
+  return "PIX";
 }
 
 /** Compara tokens sem vazar o tamanho ou o prefixo por tempo de resposta. */

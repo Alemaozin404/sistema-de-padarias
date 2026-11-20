@@ -17,12 +17,10 @@ const serverSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET deve ter ao menos 32 caracteres"),
   BETTER_AUTH_URL: z.url(),
 
-  // Gateway: opcional até a Fase 06 estar ativa.
-  ASAAS_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-  // Base64 da chave, usado quando a plataforma de deploy expande "$" em env vars.
-  ASAAS_API_KEY_B64: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-  ASAAS_WEBHOOK_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-  ASAAS_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
+  // Gateway: Mercado Pago (opcional até configurado).
+  MP_ACCESS_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  MP_WEBHOOK_SECRET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  MP_PUBLIC_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 
   RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   EMAIL_FROM: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
@@ -42,6 +40,7 @@ const serverSchema = z.object({
 const publicSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_WHATSAPP_SUPPORT: z.string().default(""),
+  NEXT_PUBLIC_MP_PUBLIC_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;
@@ -72,6 +71,7 @@ export function serverEnv(): ServerEnv {
 export const publicEnv: PublicEnv = publicSchema.parse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_WHATSAPP_SUPPORT: process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT,
+  NEXT_PUBLIC_MP_PUBLIC_KEY: process.env.NEXT_PUBLIC_MP_PUBLIC_KEY,
 });
 
 export const isDatabaseConfigured = (): boolean => Boolean(process.env.DATABASE_URL);

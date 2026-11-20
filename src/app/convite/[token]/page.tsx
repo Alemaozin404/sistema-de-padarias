@@ -73,7 +73,7 @@ export default async function InvitationPage({
         ← Gestão para padarias
       </Link>
 
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight">
+      <h1 className="mt-6 font-display text-2xl font-bold tracking-tight text-ink">
         Convite para {preview.tenantName}
       </h1>
       <p className="mt-2 text-sm text-ink-muted">
@@ -102,7 +102,7 @@ export default async function InvitationPage({
               </Link>
               <Link
                 href="/cadastro"
-                className="rounded-lg border border-black/15 px-4 py-2.5 text-sm hover:border-brand-600"
+                className="rounded-lg border border-border px-4 py-2.5 text-sm hover:border-brand-600"
               >
                 Criar conta
               </Link>

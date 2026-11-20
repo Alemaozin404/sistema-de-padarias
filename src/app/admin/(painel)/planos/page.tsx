@@ -21,7 +21,7 @@ export default async function PlatformPlansPage({
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Plataforma</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Planos e limites</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Planos e limites</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Alterações valem para novas assinaturas; o preço já contratado fica no snapshot de
           cada cliente.
@@ -55,7 +55,7 @@ export default async function PlatformPlansPage({
             <form
               key={plan.id}
               action={updatePlanAction}
-              className="space-y-4 rounded-xl border border-black/10 bg-white p-5"
+              className="space-y-4 rounded-xl border border-border bg-white p-5"
             >
               <input type="hidden" name="planId" value={plan.id} />
               <div className="flex items-center justify-between">
@@ -77,7 +77,7 @@ export default async function PlatformPlansPage({
                   name="name"
                   defaultValue={plan.name}
                   disabled={!canAct}
-                  className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
                 />
               </div>
 
@@ -91,7 +91,7 @@ export default async function PlatformPlansPage({
                   defaultValue={plan.description ?? ""}
                   rows={2}
                   disabled={!canAct}
-                  className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
                 />
               </div>
 
@@ -106,7 +106,7 @@ export default async function PlatformPlansPage({
                     inputMode="decimal"
                     defaultValue={(plan.priceCents / 100).toFixed(2)}
                     disabled={!canAct}
-                    className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
@@ -119,7 +119,7 @@ export default async function PlatformPlansPage({
                     inputMode="decimal"
                     defaultValue={(plan.activationFeeCents / 100).toFixed(2)}
                     disabled={!canAct}
-                    className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default async function PlatformPlansPage({
                 </label>
               </div>
 
-              <div className="border-t border-black/5 pt-3">
+              <div className="border-t border-border pt-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
                   Limites e recursos
                 </p>
@@ -171,7 +171,7 @@ export default async function PlatformPlansPage({
                             inputMode="numeric"
                             disabled={!canAct}
                             aria-label={`Limite de ${feature.name}`}
-                            className="w-20 rounded border border-black/15 px-2 py-1 text-right text-xs"
+                            className="w-20 rounded border border-border px-2 py-1 text-right text-xs"
                           />
                         ) : null}
                       </div>

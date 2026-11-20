@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
       <Link href="/login" className="text-sm text-ink-muted hover:text-brand-700">
         ← Voltar para o login
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight">Recuperar senha</h1>
+      <h1 className="mt-6 font-display text-2xl font-bold tracking-tight text-ink">Recuperar senha</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Informe o e-mail da sua conta. Enviaremos um link para você criar uma nova senha.
       </p>

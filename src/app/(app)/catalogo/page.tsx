@@ -52,7 +52,7 @@ export default async function CatalogPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Catálogo</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Produtos</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Produtos</h1>
           <p className="mt-1 text-sm text-ink-muted">
             {total} {total === 1 ? "produto cadastrado" : "produtos cadastrados"}
             {limit !== null ? ` de ${limit} disponíveis no plano` : " · sem limite no seu plano"}
@@ -64,7 +64,7 @@ export default async function CatalogPage({
             href={`/${tenant.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm hover:border-brand-600"
+            className="rounded-lg border border-border px-3 py-2 text-sm hover:border-brand-600"
           >
             Ver vitrine pública ↗
           </Link>
@@ -80,7 +80,7 @@ export default async function CatalogPage({
         </div>
       ) : null}
 
-      <section className="rounded-xl border border-black/10 p-5">
+      <section className="rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-sm font-semibold">Categorias</h2>
         <p className="mt-1 text-xs text-ink-muted">
           Categorias organizam a vitrine. Desativar uma categoria não remove os produtos.
@@ -91,7 +91,7 @@ export default async function CatalogPage({
             {activeCategories.map((category) => (
               <li
                 key={category.id}
-                className="flex items-center gap-2 rounded-full border border-black/10 px-3 py-1 text-sm"
+                className="flex items-center gap-2 rounded-full border border-border px-3 py-1 text-sm"
               >
                 {category.name}
                 {canWrite ? (
@@ -121,7 +121,7 @@ export default async function CatalogPage({
       </section>
 
       {canWrite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Cadastrar produto</h2>
           <p className="mt-1 text-xs text-ink-muted">
             O produto entra no catálogo interno. Marque “mostrar na vitrine” para publicá-lo.
@@ -131,7 +131,7 @@ export default async function CatalogPage({
           </div>
         </section>
       ) : (
-        <p className="rounded-lg border border-black/10 p-4 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-4 text-sm text-ink-muted">
           Você pode consultar o catálogo, mas o cadastro está suspenso por pendência financeira.
           Seus dados continuam disponíveis para consulta e exportação.
         </p>
@@ -143,12 +143,12 @@ export default async function CatalogPage({
             name="q"
             defaultValue={params.q ?? ""}
             placeholder="Buscar por nome"
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="rounded-lg border border-border px-3 py-2 text-sm"
           />
           <select
             name="categoria"
             defaultValue={params.categoria ?? ""}
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="rounded-lg border border-border px-3 py-2 text-sm"
           >
             <option value="">Todas as categorias</option>
             {activeCategories.map((category) => (
@@ -159,20 +159,20 @@ export default async function CatalogPage({
           </select>
           <button
             type="submit"
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm hover:border-brand-600"
+            className="rounded-lg border border-border px-3 py-2 text-sm hover:border-brand-600"
           >
             Filtrar
           </button>
         </form>
 
         {products.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhum produto encontrado. {canWrite ? "Cadastre o primeiro acima." : ""}
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Produto</th>
                   <th className="px-4 py-3 font-medium">Categoria</th>
@@ -183,7 +183,7 @@ export default async function CatalogPage({
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id} className="border-t border-black/5">
+                  <tr key={product.id} className="border-t border-border">
                     <td className="px-4 py-3">
                       <Link
                         href={`/catalogo/${product.id}`}

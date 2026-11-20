@@ -44,7 +44,7 @@ export default async function PlatformAuditPage({
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Plataforma</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Auditoria</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Auditoria</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Trilha append-only das ações de plataforma e de clientes. Registros não podem ser
           editados nem apagados pela aplicação.
@@ -60,7 +60,7 @@ export default async function PlatformAuditPage({
             id="tenant"
             name="tenant"
             defaultValue={tenantFilter ?? ""}
-            className="mt-1 rounded-lg border border-black/15 px-3 py-2 text-sm"
+            className="mt-1 rounded-lg border border-border px-3 py-2 text-sm"
           >
             <option value="">Todos</option>
             {tenants.map((tenant) => (
@@ -72,20 +72,20 @@ export default async function PlatformAuditPage({
         </div>
         <button
           type="submit"
-          className="rounded-lg border border-black/15 px-3 py-2 text-sm font-medium hover:bg-black/5"
+          className="rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-black/5"
         >
           Filtrar
         </button>
       </form>
 
       {logs.length === 0 ? (
-        <p className="rounded-xl border border-black/10 bg-white p-5 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-white p-5 text-sm text-ink-muted">
           Nenhum registro de auditoria.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-border bg-white">
           <table className="w-full min-w-[980px] text-sm">
-            <thead className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-ink-muted">
+            <thead className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-muted">
               <tr>
                 <th className="px-4 py-3">Quando</th>
                 <th className="px-4 py-3">Ator</th>
@@ -98,7 +98,7 @@ export default async function PlatformAuditPage({
             </thead>
             <tbody>
               {logs.map((log) => (
-                <tr key={log.id} className="border-b border-black/5 align-top last:border-0">
+                <tr key={log.id} className="border-b border-border align-top last:border-0">
                   <td className="whitespace-nowrap px-4 py-3 text-xs">{dateLabel(log.createdAt)}</td>
                   <td className="px-4 py-3 text-xs">
                     {log.actorType}

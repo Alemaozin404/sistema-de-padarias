@@ -15,7 +15,7 @@ export default async function PlatformLoginPage() {
 
   return (
     <>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Acesso restrito</h1>
+      <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">Acesso restrito</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Painel exclusivo do proprietário da plataforma. Sessão separada do painel das
         padarias e protegida por dois fatores.

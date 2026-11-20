@@ -19,6 +19,8 @@
     "admin:create": "tsx scripts/create-platform-admin.ts"
   },
   "dependencies": {
+    "@mercadopago/sdk-js": "^0.0.3",
+    "@mercadopago/sdk-react": "^1.1.0",
     "@neon/config": "^1.14.4",
     "@neon/env": "^2.1.7",
     "better-auth": "^1.7.25",

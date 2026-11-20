@@ -7,8 +7,10 @@ import { requireRecentPlatformAdmin } from "@/lib/platform-auth";
 import { GatewayError, GatewayNotConfiguredError, isGatewayConfigured } from "./gateway";
 import {
   BillingError,
+  cancelInvoice,
   ensureChargeForInvoice,
   getInvoice,
+  processCardPayment,
   reconcileInvoice,
   registerManualPayment,
   startCheckout,
@@ -51,7 +53,7 @@ export async function startCheckoutAction(
   if (!isGatewayConfigured()) {
     return {
       error:
-        "Pagamento online não configurado neste ambiente. Peça ao suporte para configurar ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN.",
+        "Pagamento online não configurado neste ambiente. Peça ao suporte para configurar MP_ACCESS_TOKEN.",
     };
   }
 
@@ -85,7 +87,7 @@ export async function createChargeAction(
   if (!isGatewayConfigured()) {
     return {
       error:
-        "Pagamento online não configurado neste ambiente. Peça ao suporte para configurar ASAAS_API_KEY e ASAAS_WEBHOOK_TOKEN.",
+        "Pagamento online não configurado neste ambiente. Peça ao suporte para configurar MP_ACCESS_TOKEN.",
     };
   }
 
@@ -148,6 +150,40 @@ export async function reconcileInvoiceAction(
   }
 }
 
+/** Cancela (anula) uma cobrança em aberto. */
+export async function cancelChargeAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let membership;
+  try {
+    membership = await requireTenant(["OWNER", "MANAGER"]);
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  const parsed = z.object({ invoiceId: z.uuid() }).safeParse({
+    invoiceId: formData.get("invoiceId"),
+  });
+  if (!parsed.success) return { error: "Fatura inválida." };
+
+  try {
+    await cancelInvoice({
+      tenantId: membership.tenantId,
+      invoiceId: parsed.data.invoiceId,
+      actorId: membership.userId,
+      reason: String(formData.get("reason") ?? "").trim() || null,
+    });
+    refresh();
+    return { success: "Cobrança cancelada." };
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+}
+
+export const cancelInvoiceAction = cancelChargeAction;
+export const voidInvoiceAction = cancelChargeAction;
+
 const manualPaymentSchema = z.object({
   tenantId: z.uuid(),
   invoiceId: z.uuid(),
@@ -200,6 +236,68 @@ export async function registerManualPaymentAction(
     });
     refresh();
     return { success: "Pagamento manual registrado e assinatura atualizada." };
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+}
+
+const cardPaymentSchema = z.object({
+  invoiceId: z.uuid(),
+  token: z.string().min(1),
+  installments: z.coerce.number().int().min(1).max(24),
+  paymentMethodId: z.string().min(1),
+  issuerId: z.string().optional(),
+  payerEmail: z.email(),
+  payerDocument: z.string().optional(),
+});
+
+/** Pagamento com cartão via token do Payment Brick. */
+export async function submitCardPaymentAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let membership;
+  try {
+    membership = await requireTenant(["OWNER", "MANAGER"]);
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  if (!isGatewayConfigured()) {
+    return { error: "Pagamento online não configurado neste ambiente." };
+  }
+
+  const parsed = cardPaymentSchema.safeParse({
+    invoiceId: formData.get("invoiceId"),
+    token: formData.get("token"),
+    installments: formData.get("installments") ?? 1,
+    paymentMethodId: formData.get("paymentMethodId"),
+    issuerId: formData.get("issuerId") || undefined,
+    payerEmail: formData.get("payerEmail"),
+    payerDocument: formData.get("payerDocument") || undefined,
+  });
+  if (!parsed.success) return { error: "Dados do pagamento inválidos." };
+
+  try {
+    const result = await processCardPayment({
+      tenantId: membership.tenantId,
+      invoiceId: parsed.data.invoiceId,
+      actorId: membership.userId,
+      token: parsed.data.token,
+      installments: parsed.data.installments,
+      paymentMethodId: parsed.data.paymentMethodId,
+      issuerId: parsed.data.issuerId ?? null,
+      payerEmail: parsed.data.payerEmail,
+      payerDocument: parsed.data.payerDocument ?? null,
+    });
+    refresh();
+    if (result.status === "approved") {
+      return { success: "Pagamento aprovado. Assinatura ativa." };
+    }
+    if (result.status === "in_process" || result.status === "pending") {
+      return { success: "Pagamento em processamento. Aguarde a confirmação." };
+    }
+    return { error: "Pagamento não aprovado. Tente novamente." };
   } catch (error) {
     return { error: messageForError(error) };
   }

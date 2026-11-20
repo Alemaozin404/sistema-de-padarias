@@ -44,7 +44,7 @@ export default async function PlatformDashboardPage() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Plataforma</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Visão geral</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Visão geral</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Receita recorrente, clientes e saúde operacional em um só lugar.
         </p>
@@ -52,16 +52,16 @@ export default async function PlatformDashboardPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-xl border border-black/10 bg-white p-5">
+          <div key={card.label} className="rounded-xl border border-border bg-white p-5">
             <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">{card.label}</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight">{card.value}</p>
+            <p className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">{card.value}</p>
             <p className="mt-1 text-xs text-ink-muted">{card.hint}</p>
           </div>
         ))}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-black/10 bg-white p-5">
+        <section className="rounded-xl border border-border bg-white p-5">
           <h2 className="text-sm font-semibold">Receita por plano</h2>
           <table className="mt-4 w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wider text-ink-muted">
@@ -73,7 +73,7 @@ export default async function PlatformDashboardPage() {
             </thead>
             <tbody>
               {overview.byPlan.map((plan) => (
-                <tr key={plan.planId} className="border-t border-black/5">
+                <tr key={plan.planId} className="border-t border-border">
                   <td className="py-2">{plan.name}</td>
                   <td className="py-2 text-right">{plan.clients}</td>
                   <td className="py-2 text-right">{formatBRL(plan.mrrCents)}</td>
@@ -83,7 +83,7 @@ export default async function PlatformDashboardPage() {
           </table>
         </section>
 
-        <section className="rounded-xl border border-black/10 bg-white p-5">
+        <section className="rounded-xl border border-border bg-white p-5">
           <h2 className="text-sm font-semibold">Precisa de atenção</h2>
           {attention.length === 0 ? (
             <p className="mt-3 text-sm text-ink-muted">Nenhum cliente vencido ou suspenso.</p>
@@ -109,7 +109,7 @@ export default async function PlatformDashboardPage() {
         </section>
       </div>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Crescimento de padarias</h2>
         {growth.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Sem dados.</p>
@@ -130,24 +130,24 @@ export default async function PlatformDashboardPage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Banco</p>
           <p className="mt-2 text-lg font-semibold">{lastDb?.status ?? "SEM DADOS"}</p>
           <p className="text-xs text-ink-muted">{dateLabel(lastDb?.checkedAt ?? null)}</p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Último backup</p>
           <p className="mt-2 text-lg font-semibold">{lastBackup?.status ?? "SEM DADOS"}</p>
           <p className="text-xs text-ink-muted">
             restore testado: {lastBackup?.restoreTestedAt ? "sim" : "não"}
           </p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Webhooks com erro</p>
           <p className="mt-2 text-lg font-semibold">{failedWebhooks}</p>
           <p className="text-xs text-ink-muted">últimos registros</p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Incidentes abertos</p>
           <p className="mt-2 text-lg font-semibold">
             {system.incidents.filter((incident) => incident.status !== "RESOLVED").length}

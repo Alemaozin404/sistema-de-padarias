@@ -26,7 +26,7 @@ export function LoginForm() {
           type="email"
           autoComplete="email"
           required
-          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2"
         />
       </div>
 
@@ -40,7 +40,7 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           required
-          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2"
         />
       </div>
 

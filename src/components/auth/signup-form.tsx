@@ -12,7 +12,7 @@ const PLANS = [
 ] as const;
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-black/15 px-3 py-2";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2";
 
 export function SignupForm({ defaultPlan }: { defaultPlan: string }) {
   const [state, formAction, pending] = useActionState(signupAction, initialState);
@@ -48,7 +48,7 @@ export function SignupForm({ defaultPlan }: { defaultPlan: string }) {
             required
             pattern="[a-z0-9]+(-[a-z0-9]+)*"
             placeholder="padaria-central"
-            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            className="w-full rounded-lg border border-border px-3 py-2"
           />
         </div>
         {state.fieldErrors?.slug ? (

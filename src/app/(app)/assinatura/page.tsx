@@ -6,7 +6,8 @@ import { listInvoices, type InvoiceRow } from "@/modules/billing/service";
 import { isGatewayConfigured } from "@/modules/billing/gateway";
 import { todayIso } from "@/modules/billing/rules";
 import { formatBRL } from "@/modules/shared/money";
-import { ChargeForm, CheckoutForm, ReconcileForm } from "@/components/billing/billing-forms";
+import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm } from "@/components/billing/billing-forms";
+import { MercadoPagoCheckout } from "@/components/billing/mercadopago-checkout";
 import type { SubscriptionStatus } from "@/modules/plans/entitlements";
 
 export const dynamic = "force-dynamic";
@@ -75,7 +76,7 @@ export default async function AssinaturaPage() {
 
   if (!overview) {
     return (
-      <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+      <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
         Estabelecimento não encontrado.
       </p>
     );
@@ -98,7 +99,7 @@ export default async function AssinaturaPage() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Financeiro</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Assinatura e cobrança</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Assinatura e cobrança</h1>
         <p className="mt-2 max-w-2xl text-sm text-ink-muted">
           A assinatura só fica ativa depois que o pagamento é confirmado pelo gateway, pelo
           webhook ou pela conciliação. Nenhum status bloqueia a consulta ou a exportação dos
@@ -113,19 +114,19 @@ export default async function AssinaturaPage() {
         >
           O gateway de pagamento não está configurado nesta instalação. Enquanto isso, é
           possível consultar faturas, mas não gerar cobranças. Configure{" "}
-          <code>ASAAS_API_KEY</code>, <code>ASAAS_WEBHOOK_TOKEN</code> e{" "}
-          <code>ASAAS_BASE_URL</code> (sandbox) para ativar o checkout.
+          <code>MP_ACCESS_TOKEN</code> e <code>MP_WEBHOOK_SECRET</code> (sandbox/produção)
+          para ativar o checkout.
         </div>
       ) : null}
 
       {!subscription ? (
-        <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+        <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
           Nenhuma assinatura encontrada. Fale com o suporte.
         </p>
       ) : (
         <>
           <section className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-black/10 p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <p className="text-xs uppercase tracking-wide text-ink-muted">Plano</p>
               <p className="mt-1 text-lg font-semibold">{overview.entitlements?.plan.name}</p>
               <p className="text-sm text-ink-muted">
@@ -136,7 +137,7 @@ export default async function AssinaturaPage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-black/10 p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <p className="text-xs uppercase tracking-wide text-ink-muted">Situação</p>
               <p className="mt-1 text-lg font-semibold">{STATUS_LABEL[subscription.status]}</p>
               <p className="mt-1 text-sm text-ink-muted">
@@ -146,7 +147,7 @@ export default async function AssinaturaPage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-black/10 p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <p className="text-xs uppercase tracking-wide text-ink-muted">Acesso aos dados</p>
               <p className="mt-1 text-sm">
                 Consulta:{" "}
@@ -168,7 +169,7 @@ export default async function AssinaturaPage() {
           </section>
 
           {openInvoice ? (
-            <section className="rounded-xl border border-black/10 p-6">
+            <section className="rounded-2xl border border-border bg-surface p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
@@ -185,28 +186,28 @@ export default async function AssinaturaPage() {
               </div>
 
               <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                <div className="flex justify-between gap-4 border-b border-black/5 py-2">
+                <div className="flex justify-between gap-4 border-b border-border py-2">
                   <dt className="text-ink-muted">Mensalidade</dt>
                   <dd>{formatBRL(openInvoice.planAmountCents)}</dd>
                 </div>
-                <div className="flex justify-between gap-4 border-b border-black/5 py-2">
+                <div className="flex justify-between gap-4 border-b border-border py-2">
                   <dt className="text-ink-muted">Ativação</dt>
                   <dd>{formatBRL(openInvoice.activationAmountCents)}</dd>
                 </div>
                 {openInvoice.discountCents > 0 ? (
-                  <div className="flex justify-between gap-4 border-b border-black/5 py-2">
+                  <div className="flex justify-between gap-4 border-b border-border py-2">
                     <dt className="text-ink-muted">Desconto</dt>
                     <dd>-{formatBRL(openInvoice.discountCents)}</dd>
                   </div>
                 ) : null}
                 {openInvoice.fineCents > 0 ? (
-                  <div className="flex justify-between gap-4 border-b border-black/5 py-2">
+                  <div className="flex justify-between gap-4 border-b border-border py-2">
                     <dt className="text-ink-muted">Multa por atraso</dt>
                     <dd>{formatBRL(openInvoice.fineCents)}</dd>
                   </div>
                 ) : null}
                 {openInvoice.interestCents > 0 ? (
-                  <div className="flex justify-between gap-4 border-b border-black/5 py-2">
+                  <div className="flex justify-between gap-4 border-b border-border py-2">
                     <dt className="text-ink-muted">Juros pro rata die</dt>
                     <dd>{formatBRL(openInvoice.interestCents)}</dd>
                   </div>
@@ -224,7 +225,7 @@ export default async function AssinaturaPage() {
                     readOnly
                     value={openInvoice.pixPayload}
                     rows={4}
-                    className="w-full rounded-lg border border-black/15 bg-black/[0.02] p-3 font-mono text-xs"
+                    className="w-full rounded-lg border border-border bg-surface-sunken p-3 font-mono text-xs"
                   />
                   <p className="text-xs text-ink-muted">
                     {openInvoice.pixExpiresAt
@@ -244,16 +245,28 @@ export default async function AssinaturaPage() {
                       Abrir fatura no gateway
                     </Link>
                   ) : null}
+                  <div className="mt-5 border-t border-border pt-5">
+                    <p className="mb-3 text-sm font-medium">Pagar com cartão</p>
+                    <MercadoPagoCheckout
+                      invoiceId={openInvoice.id}
+                      amountCents={openInvoice.totalCents}
+                      payerEmail={undefined}
+                    />
+                  </div>
                   <ReconcileForm invoiceId={openInvoice.id} />
+                  <div className="mt-3">
+                    <CancelChargeForm invoiceId={openInvoice.id} />
+                  </div>
                 </div>
               ) : configured ? (
-                <div className="mt-5">
+                <div className="mt-5 space-y-3">
                   <ChargeForm invoiceId={openInvoice.id} />
+                  <CancelChargeForm invoiceId={openInvoice.id} />
                 </div>
               ) : null}
             </section>
           ) : configured && canStartCheckout ? (
-            <section className="rounded-xl border border-black/10 p-6">
+            <section className="rounded-2xl border border-border bg-surface p-6">
               <h2 className="text-lg font-semibold">Gerar cobrança Pix</h2>
               <p className="mt-1 max-w-2xl text-sm text-ink-muted">
                 A fatura discrimina mensalidade e ativação. A assinatura só é ativada quando o
@@ -273,14 +286,14 @@ export default async function AssinaturaPage() {
           <section>
             <h2 className="text-lg font-semibold">Histórico de faturas</h2>
             {invoices.length === 0 ? (
-              <p className="mt-3 rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+              <p className="mt-3 rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
                 Nenhuma fatura emitida ainda.
               </p>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full min-w-[640px] border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wide text-ink-muted">
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-ink-muted">
                       <th className="py-3 pr-4 font-medium">Tipo</th>
                       <th className="py-3 pr-4 font-medium">Valor</th>
                       <th className="py-3 pr-4 font-medium">Vencimento</th>
@@ -290,7 +303,7 @@ export default async function AssinaturaPage() {
                   </thead>
                   <tbody>
                     {invoices.map((invoice) => (
-                      <tr key={invoice.id} className="border-b border-black/5">
+                      <tr key={invoice.id} className="border-b border-border">
                         <td className="py-3 pr-4">
                           {INVOICE_KIND_LABEL[invoice.kind] ?? invoice.kind}
                         </td>
@@ -311,7 +324,11 @@ export default async function AssinaturaPage() {
       )}
 
       <p className="text-xs text-ink-muted">
-        Precisa de ajuda com a cobrança?{" "}
+        Tem um cupom ou chave secreta?{" "}
+        <Link href="/resgatar-codigo" className="underline">
+          Resgatar código
+        </Link>
+        . Precisa de ajuda com a cobrança?{" "}
         <Link href="/dashboard" className="underline">
           Voltar ao painel
         </Link>

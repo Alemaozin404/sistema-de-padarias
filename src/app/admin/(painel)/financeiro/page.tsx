@@ -11,7 +11,7 @@ export default async function PlatformFinancePage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">MASTER CONTROL</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Financeiro</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Financeiro</h1>
         <p className="mt-1 text-sm text-ink-muted">Receita recebida, recorrente e pendências.</p>
       </div>
 
@@ -25,14 +25,14 @@ export default async function PlatformFinancePage() {
           { label: "Pagamentos pendentes", value: String(finance.pendingPayments) },
           { label: "Pagamentos recusados", value: String(finance.refusedPayments) },
         ].map((card) => (
-          <div key={card.label} className="rounded-xl border border-black/10 bg-white p-5">
+          <div key={card.label} className="rounded-xl border border-border bg-white p-5">
             <p className="text-xs uppercase tracking-wider text-ink-muted">{card.label}</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight">{card.value}</p>
+            <p className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">{card.value}</p>
           </div>
         ))}
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Receita por plano</h2>
         <table className="mt-4 w-full text-sm">
           <thead className="text-left text-xs uppercase tracking-wider text-ink-muted">
@@ -44,7 +44,7 @@ export default async function PlatformFinancePage() {
           </thead>
           <tbody>
             {finance.byPlan.map((plan) => (
-              <tr key={plan.name} className="border-t border-black/5">
+              <tr key={plan.name} className="border-t border-border">
                 <td className="py-2">{plan.name}</td>
                 <td className="py-2 text-right">{plan.clients}</td>
                 <td className="py-2 text-right">{formatBRL(plan.mrrCents)}</td>
@@ -54,7 +54,7 @@ export default async function PlatformFinancePage() {
         </table>
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Pagamentos recentes</h2>
         {finance.recentPayments.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum pagamento registrado.</p>
@@ -72,7 +72,7 @@ export default async function PlatformFinancePage() {
               </thead>
               <tbody>
                 {finance.recentPayments.map((payment) => (
-                  <tr key={payment.id} className="border-t border-black/5">
+                  <tr key={payment.id} className="border-t border-border">
                     <td className="py-2">{payment.tradeName}</td>
                     <td className="py-2">{payment.method}</td>
                     <td className="py-2">{payment.status}</td>
@@ -86,7 +86,7 @@ export default async function PlatformFinancePage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Clientes inadimplentes</h2>
         {finance.overdueClients.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum cliente inadimplente.</p>

@@ -13,15 +13,15 @@ export default async function PlatformDelinquencyPage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">MASTER CONTROL</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Inadimplência</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Inadimplência</h1>
         <p className="mt-1 text-sm text-ink-muted">
           {delinquent.length} cliente(s) com pendência. Total vencido: {formatBRL(overview.overdueCents)}.
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-border bg-white">
         <table className="w-full min-w-[760px] text-sm">
-          <thead className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-ink-muted">
+          <thead className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-muted">
             <tr>
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3">Plano</th>
@@ -34,7 +34,7 @@ export default async function PlatformDelinquencyPage() {
           </thead>
           <tbody>
             {delinquent.map((client) => (
-              <tr key={client.tenantId} className="border-b border-black/5 last:border-0">
+              <tr key={client.tenantId} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
                   <Link href={`/admin/clientes/${client.tenantId}`} className="font-medium hover:text-brand-700">
                     {client.tradeName}

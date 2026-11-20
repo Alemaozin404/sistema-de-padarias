@@ -5,4 +5,5 @@ export * from "./catalog";
 export * from "./inventory";
 export * from "./production";
 export * from "./billing";
+export * from "./promotions";
 export * from "./system";

@@ -110,7 +110,7 @@ export default async function BatchPage({
           <Link href="/producao" className="text-xs text-ink-muted hover:text-brand-700">
             ← Produção
           </Link>
-          <h1 className="mt-1 flex items-center gap-3 text-2xl font-semibold tracking-tight">
+          <h1 className="mt-1 flex items-center gap-3 font-display text-2xl font-bold tracking-tight text-ink">
             {batch.recipeName}
             <span
               className={`rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -156,11 +156,11 @@ export default async function BatchPage({
       </div>
 
       {batch.notes ? (
-        <p className="rounded-lg bg-black/[0.03] p-4 text-sm text-ink-muted">{batch.notes}</p>
+        <p className="rounded-lg bg-surface-sunken p-4 text-sm text-ink-muted">{batch.notes}</p>
       ) : null}
 
       {canComplete ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Concluir fornada</h2>
           <p className="mt-1 text-xs text-ink-muted">
             O consumo usa (produzidas + perdas) ÷ rendimento da ficha. Se faltar insumo, a
@@ -207,13 +207,13 @@ export default async function BatchPage({
         </h2>
 
         {requirements.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             A ficha não tem insumos.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Insumo</th>
                   <th className="px-4 py-3 font-medium">
@@ -229,7 +229,7 @@ export default async function BatchPage({
               </thead>
               <tbody>
                 {requirements.map((item) => (
-                  <tr key={item.id} className="border-t border-black/5">
+                  <tr key={item.id} className="border-t border-border">
                     <td className="px-4 py-3">
                       <Link
                         href={`/estoque/${item.ingredientId}`}
@@ -280,9 +280,9 @@ export default async function BatchPage({
       {losses.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">Perdas registradas</h2>
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Registrada em</th>
                   <th className="px-4 py-3 font-medium">Quantidade</th>
@@ -292,7 +292,7 @@ export default async function BatchPage({
               </thead>
               <tbody>
                 {losses.map((loss) => (
-                  <tr key={loss.id} className="border-t border-black/5">
+                  <tr key={loss.id} className="border-t border-border">
                     <td className="px-4 py-3 text-ink-muted">
                       {loss.createdAt.toLocaleString("pt-BR", {
                         dateStyle: "short",

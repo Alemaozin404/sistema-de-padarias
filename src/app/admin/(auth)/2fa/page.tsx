@@ -21,7 +21,7 @@ export default async function PlatformTwoFactorPage() {
 
   return (
     <>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Confirme o segundo fator</h1>
+      <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">Confirme o segundo fator</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Abra seu aplicativo autenticador e adicione a chave abaixo. O código muda a cada
         30 segundos.

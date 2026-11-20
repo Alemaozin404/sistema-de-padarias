@@ -113,6 +113,7 @@ export const invoices = pgTable(
     paidAt: timestamp("paid_at", { withTimezone: true }),
     gateway: text("gateway"),
     gatewayInvoiceId: text("gateway_invoice_id"),
+    appliedGrantId: uuid("applied_grant_id"),
     pixPayload: text("pix_payload"),
     pixExpiresAt: timestamp("pix_expires_at", { withTimezone: true }),
     invoiceUrl: text("invoice_url"),
@@ -223,9 +224,15 @@ export const coupons = pgTable(
     id: uuid("id")
       .primaryKey()
       .$defaultFn(() => uuidv7()),
+    name: text("name"),
+    description: text("description"),
     code: varchar("code", { length: 40 }).notNull().unique(),
-    discountType: text("discount_type").notNull(), // PERCENT | FIXED
-    value: integer("value").notNull(),
+    discountType: text("discount_type").notNull(), // PERCENT | FIXED | FREE | ACTIVATION
+    value: integer("value").notNull().default(0),
+    durationCycles: integer("duration_cycles"),
+    appliesToActivation: boolean("applies_to_activation").notNull().default(false),
+    isPublic: boolean("is_public").notNull().default(true),
+    maxPerTenant: integer("max_per_tenant").notNull().default(1),
     appliesToPlanId: uuid("applies_to_plan_id").references(() => plans.id, {
       onDelete: "set null",
     }),
@@ -237,7 +244,7 @@ export const coupons = pgTable(
     createdBy: text("created_by"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [check("coupons_value_positive", sql`${t.value} > 0`)],
+  (t) => [check("coupons_value_positive", sql`${t.value} >= 0`)],
 );
 
 /** Condição comercial negociada por cliente, com vigência e motivo registrados. */

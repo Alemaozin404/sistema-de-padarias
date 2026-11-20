@@ -50,7 +50,7 @@ export default async function IngredientPage({
           <Link href="/estoque" className="text-xs text-ink-muted hover:text-brand-700">
             ← Estoque
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{ingredient.name}</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">{ingredient.name}</h1>
           <p className="mt-1 text-sm text-ink-muted">
             Saldo atual: {formatQuantity(ingredient.quantity)}{" "}
             {ingredient.unit.toLowerCase()} · mínimo {formatQuantity(ingredient.minStock)}
@@ -66,7 +66,7 @@ export default async function IngredientPage({
       </div>
 
       {ingredient.isActive && canWrite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Registrar movimento</h2>
           <div className="mt-4 max-w-3xl">
             <MovementForm ingredients={ingredientOptions} presetIngredientId={ingredient.id} />
@@ -75,7 +75,7 @@ export default async function IngredientPage({
       ) : null}
 
       {canWrite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Editar insumo</h2>
           <p className="mt-1 text-xs text-ink-muted">
             Mudar o custo ou o mínimo não altera o saldo nem o histórico.
@@ -93,13 +93,13 @@ export default async function IngredientPage({
       <section className="space-y-3">
         <h2 className="text-sm font-semibold">Movimentos deste insumo</h2>
         {movements.rows.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhum movimento registrado.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Data</th>
                   <th className="px-4 py-3 font-medium">Tipo</th>
@@ -110,7 +110,7 @@ export default async function IngredientPage({
               </thead>
               <tbody>
                 {movements.rows.map((movement) => (
-                  <tr key={movement.id} className="border-t border-black/5">
+                  <tr key={movement.id} className="border-t border-border">
                     <td className="px-4 py-3 text-ink-muted">
                       {movement.createdAt.toLocaleString("pt-BR", {
                         dateStyle: "short",

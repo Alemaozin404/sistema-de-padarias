@@ -12,13 +12,13 @@ export default async function PlatformSubscriptionsPage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">MASTER CONTROL</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Assinaturas</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Assinaturas</h1>
         <p className="mt-1 text-sm text-ink-muted">{rows.length} assinatura(s).</p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-border bg-white">
         <table className="w-full min-w-[900px] text-sm">
-          <thead className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-ink-muted">
+          <thead className="border-b border-border text-left text-xs uppercase tracking-wider text-ink-muted">
             <tr>
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3">Plano</th>
@@ -30,7 +30,7 @@ export default async function PlatformSubscriptionsPage() {
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.subscription.id} className="border-b border-black/5 last:border-0">
+              <tr key={row.subscription.id} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
                   <Link href={`/admin/clientes/${row.tenant.id}`} className="font-medium hover:text-brand-700">
                     {row.tenant.tradeName}

@@ -32,7 +32,7 @@ export function PlatformTotpForm() {
           maxLength={7}
           required
           autoFocus
-          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-center text-xl tracking-[0.4em]"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-center text-xl tracking-[0.4em]"
         />
       </div>
 

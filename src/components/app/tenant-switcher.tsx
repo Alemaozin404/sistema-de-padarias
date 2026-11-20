@@ -23,7 +23,7 @@ export function TenantSwitcher({
         name="tenantId"
         defaultValue={currentTenantId}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
-        className="rounded-lg border border-black/15 bg-white px-2 py-1 text-sm text-ink"
+        className="w-full rounded-lg border border-white/10 bg-white/[0.06] px-2 py-1.5 text-sm text-white focus:border-brand-400 focus:outline-none"
       >
         {options.map((option) => (
           <option key={option.tenantId} value={option.tenantId}>

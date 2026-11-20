@@ -43,9 +43,9 @@ No primeiro acesso a `/admin`, cadastre a chave TOTP no aplicativo autenticador.
 
 `BETTER_AUTH_SECRET` pode ser gerado com `openssl rand -base64 32`.
 
-Para cobrar em sandbox, preencha `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN` (32+ caracteres,
-o mesmo configurado no Asaas), `ASAAS_BASE_URL=https://api-sandbox.asaas.com/v3` e
-`CRON_SECRET`. O webhook é `POST /api/webhooks/asaas`; o job diário é
+Para cobrar em sandbox, preencha `MP_ACCESS_TOKEN` (token de teste `TEST-...`),
+`MP_WEBHOOK_SECRET`, `NEXT_PUBLIC_MP_PUBLIC_KEY` e `CRON_SECRET`. O webhook é
+`POST /api/webhooks/mercadopago`; o job diário é
 `/api/cron/billing` (agendado no `vercel.json`), que também executa a régua de
 cobrança. O health check horário é `/api/cron/health`. Para enviar os avisos por
 e-mail, configure `RESEND_API_KEY` e `EMAIL_FROM`.

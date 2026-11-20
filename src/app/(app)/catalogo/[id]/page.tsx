@@ -54,7 +54,7 @@ export default async function EditProductPage({
         <Link href="/catalogo" className="text-sm text-ink-muted hover:text-brand-700">
           ← Catálogo
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
+        <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">{product.name}</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Criado em {product.createdAt.toLocaleDateString("pt-BR")} · endereço {product.slug}
         </p>
@@ -69,7 +69,7 @@ export default async function EditProductPage({
         </div>
       ) : null}
 
-      <section className="rounded-xl border border-black/10 p-5">
+      <section className="rounded-2xl border border-border bg-surface p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold">Dados do produto</h2>
           <div className="flex items-center gap-3 text-xs">
@@ -127,7 +127,7 @@ export default async function EditProductPage({
         </div>
       </section>
 
-      <section className="rounded-xl border border-black/10 p-5">
+      <section className="rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-sm font-semibold">Histórico de preço</h2>
         {history.length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">

@@ -32,12 +32,12 @@ export function PlatformReauthForm({ fresh }: { fresh: boolean }) {
           autoComplete="current-password"
           placeholder={state.error ?? "Senha para ações sensíveis"}
           required
-          className="w-52 rounded-lg border border-black/15 px-3 py-1.5 text-xs"
+          className="w-52 rounded-lg border border-border px-3 py-1.5 text-xs"
         />
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-medium hover:bg-black/5 disabled:opacity-60"
+          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-black/5 disabled:opacity-60"
         >
           {pending ? "…" : "Reautenticar"}
         </button>

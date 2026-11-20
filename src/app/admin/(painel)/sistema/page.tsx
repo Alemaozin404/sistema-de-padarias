@@ -49,7 +49,7 @@ export default async function PlatformSystemPage({
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Plataforma</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Sistema</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Sistema</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Dependências, backups testados, falhas de webhook e incidentes. Backup sem restore
           testado não conta como proteção.
@@ -71,7 +71,7 @@ export default async function PlatformSystemPage({
         {["DB", "GATEWAY", "EMAIL"].map((target) => {
           const check = latestByTarget.get(target);
           return (
-            <div key={target} className="rounded-xl border border-black/10 bg-white p-5">
+            <div key={target} className="rounded-xl border border-border bg-white p-5">
               <p className="text-xs uppercase tracking-wider text-ink-muted">{target}</p>
               <p className="mt-2">
                 <span
@@ -87,12 +87,12 @@ export default async function PlatformSystemPage({
             </div>
           );
         })}
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Uptime DB</p>
           <p className="mt-2 text-2xl font-semibold">{dbUptime === null ? "—" : `${dbUptime}%`}</p>
           <p className="mt-1 text-xs text-ink-muted">{dbChecks.length} check(s) recentes</p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div className="rounded-xl border border-border bg-white p-5">
           <p className="text-xs uppercase tracking-wider text-ink-muted">Incidentes abertos</p>
           <p className="mt-2 text-2xl font-semibold">{openIncidents.length}</p>
           <p className="mt-1 text-xs text-ink-muted">
@@ -101,7 +101,7 @@ export default async function PlatformSystemPage({
         </div>
       </section>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Backups</h2>
         {system.backups.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">
@@ -121,7 +121,7 @@ export default async function PlatformSystemPage({
               </thead>
               <tbody>
                 {system.backups.map((backup) => (
-                  <tr key={backup.id} className="border-t border-black/5">
+                  <tr key={backup.id} className="border-t border-border">
                     <td className="py-2">{backup.kind}</td>
                     <td className="py-2 text-xs">{dateLabel(backup.startedAt)}</td>
                     <td className="py-2">
@@ -153,7 +153,7 @@ export default async function PlatformSystemPage({
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-black/10 bg-white p-5">
+        <section className="rounded-xl border border-border bg-white p-5">
           <h2 className="text-sm font-semibold">Webhooks pendentes ou com erro</h2>
           {system.webhookFailures.length === 0 ? (
             <p className="mt-3 text-sm text-ink-muted">Nenhum evento pendente.</p>
@@ -174,7 +174,7 @@ export default async function PlatformSystemPage({
           )}
         </section>
 
-        <section className="rounded-xl border border-black/10 bg-white p-5">
+        <section className="rounded-xl border border-border bg-white p-5">
           <h2 className="text-sm font-semibold">Segurança recente</h2>
           {system.security.length === 0 ? (
             <p className="mt-3 text-sm text-ink-muted">Nenhum evento registrado.</p>
@@ -193,7 +193,7 @@ export default async function PlatformSystemPage({
         </section>
       </div>
 
-      <section className="rounded-xl border border-black/10 bg-white p-5">
+      <section className="rounded-xl border border-border bg-white p-5">
         <h2 className="text-sm font-semibold">Incidentes</h2>
         {system.incidents.length === 0 ? (
           <p className="mt-3 text-sm text-ink-muted">Nenhum incidente registrado.</p>

@@ -68,7 +68,7 @@ export default async function RecipePage({
           <Link href="/producao" className="text-xs text-ink-muted hover:text-brand-700">
             ← Produção
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{recipe.name}</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">{recipe.name}</h1>
           <p className="mt-1 text-sm text-ink-muted">
             Gera{" "}
             <Link
@@ -95,13 +95,13 @@ export default async function RecipePage({
         <h2 className="text-sm font-semibold">Insumos da ficha</h2>
 
         {recipe.items.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-6 text-sm text-ink-muted">
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
             Nenhum insumo na ficha. Sem insumos não é possível planejar uma fornada.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-black/10">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
             <table className="w-full text-sm">
-              <thead className="bg-black/[0.03] text-left text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="bg-surface-sunken text-left text-xs uppercase tracking-wide text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Insumo</th>
                   <th className="px-4 py-3 font-medium">Quantidade</th>
@@ -112,7 +112,7 @@ export default async function RecipePage({
               </thead>
               <tbody>
                 {recipe.items.map((item) => (
-                  <tr key={item.id} className="border-t border-black/5">
+                  <tr key={item.id} className="border-t border-border">
                     <td className="px-4 py-3">
                       <Link
                         href={`/estoque/${item.ingredientId}`}
@@ -162,7 +162,7 @@ export default async function RecipePage({
 
         {canWrite ? (
           availableIngredients.length > 0 ? (
-            <div className="rounded-xl border border-black/10 p-4">
+            <div className="rounded-2xl border border-border bg-surface p-4">
               <RecipeItemForm recipeId={recipe.id} ingredients={availableIngredients} />
             </div>
           ) : (
@@ -174,7 +174,7 @@ export default async function RecipePage({
       </section>
 
       {canWrite ? (
-        <section className="rounded-xl border border-black/10 p-5">
+        <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Editar ficha</h2>
           <div className="mt-4 max-w-3xl">
             <RecipeForm

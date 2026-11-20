@@ -19,7 +19,7 @@ export default async function PlatformSettingsPage({ searchParams }: { searchPar
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">MASTER CONTROL</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Configurações</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Configurações</h1>
         <p className="mt-1 text-sm text-ink-muted">Flags operacionais da plataforma.</p>
       </div>
 
@@ -31,7 +31,7 @@ export default async function PlatformSettingsPage({ searchParams }: { searchPar
           const current = settingsMap.get(key)?.value as { enabled?: boolean } | null;
           const enabled = current?.enabled ?? defaultValue;
           return (
-            <form key={key} action={togglePlatformFlagAction} className="rounded-xl border border-black/10 bg-white p-5">
+            <form key={key} action={togglePlatformFlagAction} className="rounded-xl border border-border bg-white p-5">
               <input type="hidden" name="key" value={key} />
               <input type="hidden" name="value" value={String(!enabled)} />
               <div className="flex items-center justify-between">
