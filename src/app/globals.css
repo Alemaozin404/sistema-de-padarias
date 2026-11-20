@@ -219,3 +219,59 @@ table tbody tr:hover {
     transition-duration: 0.01ms !important;
   }
 }
+/* Dark theme (admin + global toggle) */
+.dark {
+  color-scheme: dark;
+  --bg-0: #0b1220;
+  --bg-1: #121a2b;
+}
+.dark body {
+  background: #0b1220 !important;
+  color: #e2e8f0;
+}
+.dark .bg-white,
+.dark .bg-surface,
+.dark .bg-surface-raised {
+  background-color: #121a2b !important;
+}
+.dark .bg-neutral-50,
+.dark .bg-surface-soft,
+.dark .bg-surface-sunken {
+  background-color: #0f172a !important;
+}
+.dark .text-ink,
+.dark .text-ink-soft {
+  color: #e2e8f0 !important;
+}
+.dark .text-ink-muted,
+.dark .text-ink-faint {
+  color: #94a3b8 !important;
+}
+.dark .border-border,
+.dark .border-border-strong {
+  border-color: #1e2a44 !important;
+}
+.dark input,
+.dark select,
+.dark textarea {
+  background: #0f172a !important;
+  border-color: #1e2a44 !important;
+  color: #e2e8f0 !important;
+}
+.dark input::placeholder {
+  color: #64748b !important;
+}
+.dark .glass,
+.dark .glass-strong {
+  background: rgba(18, 26, 43, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.dark table tbody tr:hover {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}

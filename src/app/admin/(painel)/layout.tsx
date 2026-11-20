@@ -1,29 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PlatformReauthForm } from "@/components/platform/reauth-form";
+import { AdminShell } from "@/components/admin/admin-shell";
 import { platformLogoutAction } from "@/modules/platform/auth-actions";
 import { getPlatformSession, isMfaComplete } from "@/lib/platform-auth";
 
 export const dynamic = "force-dynamic";
-
-const NAV = [
-  { href: "/admin", label: "Visão geral" },
-  { href: "/admin/usuarios", label: "Usuários" },
-  { href: "/admin/clientes", label: "Padarias" },
-  { href: "/admin/atividades", label: "Atividades" },
-  { href: "/admin/financeiro", label: "Financeiro" },
-  { href: "/admin/assinaturas", label: "Assinaturas" },
-  { href: "/admin/planos", label: "Planos" },
-  { href: "/admin/inadimplencia", label: "Inadimplência" },
-  { href: "/admin/suporte", label: "Suporte" },
-  { href: "/admin/monitoramento", label: "Monitoramento" },
-  { href: "/admin/seguranca", label: "Segurança" },
-  { href: "/admin/auditoria", label: "Auditoria" },
-  { href: "/admin/cupons", label: "Cupons" },
-  { href: "/admin/promocoes", label: "Promoções" },
-  { href: "/admin/configuracoes", label: "Configurações" },
-  { href: "/admin/sistema", label: "Sistema" },
-];
 
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
   const session = await getPlatformSession();
@@ -35,42 +16,15 @@ export default async function PlatformLayout({ children }: { children: React.Rea
     session.lastReauthAt.getTime() > Date.now() - 10 * 60 * 1000;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="sticky top-0 z-40 border-b border-border bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-3">
-          <div className="flex items-center gap-5">
-            <Link href="/admin" className="font-display text-lg font-semibold tracking-tight text-brand-700">
-              MASTER CONTROL
-            </Link>
-            <nav className="flex flex-wrap gap-4 text-sm">
-              {NAV.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-ink-muted hover:text-brand-700"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-3 text-sm">
-            <PlatformReauthForm fresh={fresh} />
-            <span className="text-xs text-ink-muted">{session.email}</span>
-            <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
-              {session.role === "OWNER" ? "Proprietário" : "Suporte"}
-            </span>
-            <form action={platformLogoutAction}>
-              <button type="submit" className="text-ink-muted hover:text-brand-700">
-                Sair
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
-    </div>
+    <>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{var t=localStorage.getItem('admin-theme');var d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+        }}
+      />
+      <AdminShell email={session.email} role={session.role} fresh={fresh}>
+        {children}
+      </AdminShell>
+    </>
   );
 }
