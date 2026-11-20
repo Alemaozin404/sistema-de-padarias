@@ -4,6 +4,7 @@ import { platformLogoutAction } from "@/modules/platform/auth-actions";
 import { ensureTotpSecret } from "@/modules/platform/auth-service";
 import { getPlatformSession, isMfaComplete } from "@/lib/platform-auth";
 import { otpauthUrl } from "@/modules/platform/totp";
+import QRCode from "qrcode";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dois fatores" };
@@ -16,6 +17,7 @@ export default async function PlatformTwoFactorPage() {
   const secret = await ensureTotpSecret(session.userId, session.totpSecret);
   const uri = otpauthUrl({ secret, email: session.email });
   const grouped = secret.replace(/(.{4})/g, "$1 ").trim();
+  const qrCodeDataUrl = await QRCode.toDataURL(uri, { width: 220, margin: 1 });
 
   return (
     <>
@@ -35,6 +37,9 @@ export default async function PlatformTwoFactorPage() {
             {secret}
           </code>
           <p className="mt-2 break-all font-mono text-xs text-amber-800">{grouped}</p>
+          <div className="mt-3 flex justify-center rounded-lg bg-white p-3">
+            <img src={qrCodeDataUrl} alt="QR code para cadastro do 2FA" width={220} height={220} />
+          </div>
           <p className="mt-2 break-all text-xs text-amber-800">{uri}</p>
           <p className="mt-2 text-xs">
             Guarde a chave em local seguro. Sem ela e sem os códigos futuros, o acesso
