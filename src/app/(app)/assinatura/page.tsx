@@ -6,7 +6,8 @@ import { listInvoices, type InvoiceRow } from "@/modules/billing/service";
 import { isGatewayConfigured } from "@/modules/billing/gateway";
 import { todayIso } from "@/modules/billing/rules";
 import { formatBRL } from "@/modules/shared/money";
-import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm } from "@/components/billing/billing-forms";
+import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm, RequestCancellationForm, RequestRefundForm } from "@/components/billing/billing-forms";
+import { listRefundRequests } from "@/modules/billing/refunds";
 import { MercadoPagoCheckout } from "@/components/billing/mercadopago-checkout";
 import type { SubscriptionStatus } from "@/modules/plans/entitlements";
 
@@ -69,10 +70,13 @@ export default async function AssinaturaPage() {
     throw error;
   }
 
-  const [overview, invoices] = await Promise.all([
+  const [overview, invoices, refundRequests] = await Promise.all([
     getTenantOverview(membership.tenantId),
     listInvoices(membership.tenantId),
+    listRefundRequests(membership.tenantId),
   ]);
+
+  const refundedProcessed = refundRequests.find((r) => r.status === "PROCESSED");
 
   if (!overview) {
     return (
@@ -120,9 +124,16 @@ export default async function AssinaturaPage() {
       ) : null}
 
       {!subscription ? (
-        <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
-          Nenhuma assinatura encontrada. Fale com o suporte.
-        </p>
+        refundedProcessed ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-900">
+            Seu acesso foi suspenso devido ao reembolso concluído. Os seus dados permanecem
+            disponíveis para consulta e exportação.
+          </div>
+        ) : (
+          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
+            Nenhuma assinatura encontrada. Fale com o suporte.
+          </p>
+        )
       ) : (
         <>
           <section className="grid gap-4 sm:grid-cols-3">
@@ -282,6 +293,58 @@ export default async function AssinaturaPage() {
               {formatDate(subscription.nextDueDate)}.
             </p>
           ) : null}
+
+          <section className="rounded-2xl border border-border bg-surface p-6">
+            <h2 className="text-lg font-semibold">Minha assinatura</h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Gerencie o cancelamento e solicite reembolso dentro do prazo de 7 dias após o
+              pagamento.
+            </p>
+            <div className="mt-4 grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-sm font-semibold">Cancelar assinatura</h3>
+                <p className="mt-1 text-xs text-ink-muted">
+                  O cancelamento encerra a assinatura e impede cobranças futuras.
+                </p>
+                <div className="mt-3">
+                  <RequestCancellationForm />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold">Solicitar reembolso</h3>
+                <p className="mt-1 text-xs text-ink-muted">
+                  Disponível nos primeiros 7 dias corridos após a confirmação do pagamento.
+                  O reembolso só é efetivado após confirmação do gateway.
+                </p>
+                {openInvoice ? (
+                  <div className="mt-3 text-xs text-ink-muted">
+                    Reembolso disponível após a fatura ser paga.
+                  </div>
+                ) : invoices.some((i) => i.status === "PAID") ? (
+                  <div className="mt-3 space-y-2">
+                    {invoices
+                      .filter((i) => i.status === "PAID")
+                      .slice(0, 3)
+                      .map((inv) => (
+                        <div key={inv.id} className="rounded-lg border border-border p-3">
+                          <p className="text-xs text-ink-muted">
+                            Fatura {inv.kind === "INITIAL" ? "inicial" : "renovação"} —{" "}
+                            {formatBRL(inv.totalCents)} (paga em {formatDate(inv.paidAt)})
+                          </p>
+                          <div className="mt-2">
+                            <RequestRefundForm invoiceId={inv.id} />
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-ink-muted">
+                    Nenhuma fatura paga encontrada para reembolso.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
 
           <section>
             <h2 className="text-lg font-semibold">Histórico de faturas</h2>

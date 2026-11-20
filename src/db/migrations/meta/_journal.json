@@ -50,6 +50,13 @@
       "when": 1795146393269,
       "tag": "0006_stale_glorian",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795212282728,
+      "tag": "0007_parched_lilandra",
+      "breakpoints": true
     }
   ]
 }

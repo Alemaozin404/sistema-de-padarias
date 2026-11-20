@@ -15,6 +15,10 @@ import {
   registerManualPayment,
   startCheckout,
 } from "./service";
+import { requestCancellation, confirmCancellation } from "./cancellations";
+import { requestRefund, transitionRefund } from "./refunds";
+import { CancellationError } from "./cancellations";
+import { RefundError } from "./refunds";
 
 export type BillingActionState = { error?: string; success?: string };
 
@@ -299,6 +303,141 @@ export async function submitCardPaymentAction(
     }
     return { error: "Pagamento não aprovado. Tente novamente." };
   } catch (error) {
+    return { error: messageForError(error) };
+  }
+}
+
+/** Solicita cancelamento da assinatura (cliente). */
+export async function requestCancellationAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let membership;
+  try {
+    membership = await requireTenant(["OWNER", "MANAGER"]);
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  const reason = String(formData.get("reason") ?? "").trim() || null;
+
+  try {
+    await requestCancellation({
+      tenantId: membership.tenantId,
+      actorId: membership.userId,
+      reason,
+    });
+    // Confirma imediatamente o cancelamento (encerra assinatura).
+    await confirmCancellation({
+      tenantId: membership.tenantId,
+      actorId: membership.userId,
+      actorType: "USER",
+      reason,
+    });
+    refresh();
+    return { success: "Cancelamento solicitado e processado. A assinatura foi encerrada." };
+  } catch (error) {
+    if (error instanceof CancellationError) return { error: error.message };
+    return { error: messageForError(error) };
+  }
+}
+
+/** Solicita reembolso dentro do prazo de 7 dias (cliente). */
+export async function requestRefundAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let membership;
+  try {
+    membership = await requireTenant(["OWNER", "MANAGER"]);
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  const parsed = z.object({ invoiceId: z.uuid() }).safeParse({
+    invoiceId: formData.get("invoiceId"),
+  });
+  if (!parsed.success) return { error: "Fatura inválida." };
+
+  const reason = String(formData.get("reason") ?? "").trim() || null;
+
+  try {
+    await requestRefund({
+      tenantId: membership.tenantId,
+      invoiceId: parsed.data.invoiceId,
+      reason,
+      actorId: membership.userId,
+    });
+    refresh();
+    return { success: "Solicitação de reembolso registrada. Aguardando análise." };
+  } catch (error) {
+    if (error instanceof RefundError) return { error: error.message };
+    return { error: messageForError(error) };
+  }
+}
+
+/** Admin: aprova reembolso (marca aprovado; processamento ocorre via gateway). */
+export async function approveRefundAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let admin;
+  try {
+    admin = await requireRecentPlatformAdmin();
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  const parsed = z.object({ requestId: z.uuid(), tenantId: z.uuid() }).safeParse({
+    requestId: formData.get("requestId"),
+    tenantId: formData.get("tenantId"),
+  });
+  if (!parsed.success) return { error: "Solicitação inválida." };
+
+  try {
+    await transitionRefund({
+      tenantId: parsed.data.tenantId,
+      requestId: parsed.data.requestId,
+      to: "APPROVED",
+      actorId: admin.userId,
+      actorType: "ADMIN",
+    });
+    return { success: "Reembolso aprovado." };
+  } catch (error) {
+    if (error instanceof RefundError) return { error: error.message };
+    return { error: messageForError(error) };
+  }
+}
+
+/** Admin: recusa reembolso. */
+export async function rejectRefundAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let admin;
+  try {
+    admin = await requireRecentPlatformAdmin();
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  const parsed = z.object({ requestId: z.uuid(), tenantId: z.uuid() }).safeParse({
+    requestId: formData.get("requestId"),
+    tenantId: formData.get("tenantId"),
+  });
+  if (!parsed.success) return { error: "Solicitação inválida." };
+
+  try {
+    await transitionRefund({
+      tenantId: parsed.data.tenantId,
+      requestId: parsed.data.requestId,
+      to: "REJECTED",
+      actorId: admin.userId,
+      actorType: "ADMIN",
+    });
+    return { success: "Reembolso recusado." };
+  } catch (error) {
+    if (error instanceof RefundError) return { error: error.message };
     return { error: messageForError(error) };
   }
 }

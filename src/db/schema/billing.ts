@@ -315,3 +315,69 @@ export const notificationLog = pgTable(
   },
   (t) => [index("notification_log_tenant_idx").on(t.tenantId, t.createdAt)],
 );
+
+/**
+ * Solicitação de cancelamento de assinatura feita pelo cliente (ou admin).
+ * O cancelamento efetivo encerra a assinatura e impede cobranças futuras.
+ */
+export const cancellationRequests = pgTable(
+  "cancellation_requests",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => subscriptions.id, { onDelete: "cascade" }),
+    reason: text("reason"),
+    status: text("status").notNull().default("REQUESTED"), // REQUESTED | CONFIRMED | CANCELLED
+    requestedBy: text("requested_by"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    effectiveAt: timestamp("effective_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("cancellation_requests_tenant_idx").on(t.tenantId, t.requestedAt)],
+);
+
+/**
+ * Solicitação de reembolso vinculada a um pagamento original. O dinheiro só é
+ * considerado devolvido após confirmação do gateway (status PROCESSED).
+ */
+export const refundRequests = pgTable(
+  "refund_requests",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => subscriptions.id, { onDelete: "cascade" }),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => invoices.id, { onDelete: "restrict" }),
+    paymentId: text("payment_id"), // gateway payment id original
+    amountCents: integer("amount_cents").notNull(),
+    reason: text("reason"),
+    status: text("status").notNull().default("REQUESTED"), // REQUESTED | IN_ANALYSIS | APPROVED | REJECTED | PROCESSED | FAILED
+    requestedBy: text("requested_by"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    gatewayRefundId: text("gateway_refund_id"),
+    failureReason: text("failure_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("refund_requests_tenant_idx").on(t.tenantId, t.requestedAt),
+    index("refund_requests_status_idx").on(t.status, t.requestedAt),
+    check("refund_requests_amount_non_negative", sql`${t.amountCents} >= 0`),
+  ],
+);

@@ -6,6 +6,7 @@ import {
   markInvoiceOverdue,
   markInvoiceRefunded,
 } from "./service";
+import { transitionRefund, listRefundRequests } from "./refunds";
 import {
   centsFromGateway,
   mapPaymentMethod,
@@ -83,6 +84,28 @@ export async function processMercadoPagoEvent(
       gateway: "MERCADOPAGO",
       gatewayPaymentId: payment.id,
     });
+
+    // Se havia solicitação de reembolso aberta para esta fatura, confirma o
+    // processamento (encerra assinatura e bloqueia acesso).
+    try {
+      const requests = await listRefundRequests(reference.tenantId);
+      const open = requests.find(
+        (r) => r.invoiceId === invoice.id && r.status !== "PROCESSED" && r.status !== "REJECTED" && r.status !== "FAILED",
+      );
+      if (open) {
+        await transitionRefund({
+          tenantId: reference.tenantId,
+          requestId: open.id,
+          to: "PROCESSED",
+          actorId: null,
+          actorType: "GATEWAY",
+          gatewayRefundId: payment.id,
+        });
+      }
+    } catch {
+      // não interrompe o processamento do webhook
+    }
+
     return "PROCESSED";
   }
 

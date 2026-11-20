@@ -2,9 +2,13 @@
 
 import { useActionState } from "react";
 import {
+  approveRefundAction,
   cancelChargeAction,
   createChargeAction,
   reconcileInvoiceAction,
+  rejectRefundAction,
+  requestCancellationAction,
+  requestRefundAction,
   startCheckoutAction,
   type BillingActionState,
 } from "@/modules/billing/actions";
@@ -123,6 +127,66 @@ export function ReconcileForm({ invoiceId }: { invoiceId: string }) {
       <p className="text-xs text-ink-muted">
         O botão consulta a cobrança no gateway. A confirmação também chega pelo webhook;
         este é o caminho de contingência.
+      </p>
+    </form>
+  );
+}
+
+export function RequestCancellationForm() {
+  const [state, formAction, pending] = useActionState(requestCancellationAction, initialState);
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <Feedback state={state} />
+      <div>
+        <label htmlFor="reason" className="block text-sm font-medium">
+          Motivo do cancelamento (opcional)
+        </label>
+        <textarea
+          id="reason"
+          name="reason"
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand-600"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg border border-red-600 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+      >
+        {pending ? "Processando…" : "Solicitar cancelamento"}
+      </button>
+    </form>
+  );
+}
+
+export function RequestRefundForm({ invoiceId }: { invoiceId: string }) {
+  const [state, formAction, pending] = useActionState(requestRefundAction, initialState);
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <input type="hidden" name="invoiceId" value={invoiceId} />
+      <Feedback state={state} />
+      <div>
+        <label htmlFor="reason" className="block text-sm font-medium">
+          Motivo do reembolso (opcional)
+        </label>
+        <textarea
+          id="reason"
+          name="reason"
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand-600"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg border border-amber-600 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-60"
+      >
+        {pending ? "Enviando…" : "Solicitar reembolso (7 dias)"}
+      </button>
+      <p className="text-xs text-ink-muted">
+        O reembolso só é efetivado após confirmação do gateway de pagamento.
       </p>
     </form>
   );
