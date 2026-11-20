@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPlatformOverview, getSystemSnapshot } from "@/modules/platform/queries";
+import { getPlatformOverview, getSystemSnapshot, getMasterMetrics, getMonthlyGrowth } from "@/modules/platform/queries";
 import { formatBRL } from "@/modules/shared/money";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,12 @@ function dateLabel(value: Date | string | null): string {
 }
 
 export default async function PlatformDashboardPage() {
-  const [overview, system] = await Promise.all([getPlatformOverview(), getSystemSnapshot()]);
+  const [overview, system, metrics, growth] = await Promise.all([
+    getPlatformOverview(),
+    getSystemSnapshot(),
+    getMasterMetrics(),
+    getMonthlyGrowth(),
+  ]);
   const lastDb = system.health.find((check) => check.target === "DB") ?? null;
   const lastBackup = system.backups[0] ?? null;
   const failedWebhooks = system.webhookFailures.filter((event) => event.status === "FAILED").length;
@@ -21,20 +26,18 @@ export default async function PlatformDashboardPage() {
     .slice(0, 8);
 
   const cards = [
-    { label: "MRR", value: formatBRL(overview.mrrCents), hint: "assinaturas ACTIVE" },
-    {
-      label: "Faturamento do mês",
-      value: formatBRL(overview.revenueThisMonthCents),
-      hint: "faturas pagas",
-    },
-    { label: "Clientes ativos", value: String(overview.activeClients), hint: `${overview.totalTenants} no total` },
-    {
-      label: "Inadimplentes",
-      value: String(overview.delinquentClients),
-      hint: `${formatBRL(overview.overdueCents)} vencidos`,
-    },
-    { label: "Novos no mês", value: String(overview.newTenantsThisMonth), hint: "cadastros" },
-    { label: "Churn 30 dias", value: String(overview.churnLast30Days), hint: "assinaturas canceladas" },
+    { label: "MRR", value: formatBRL(metrics.mrrCents), hint: "assinaturas ACTIVE" },
+    { label: "ARR projetado", value: formatBRL(metrics.arrCents), hint: "MRR x 12" },
+    { label: "Faturamento do mês", value: formatBRL(metrics.revenueThisMonthCents), hint: "faturas pagas" },
+    { label: "Valores vencidos", value: formatBRL(metrics.overdueCents), hint: "inadimplência" },
+    { label: "Usuários totais", value: String(metrics.totalUsers), hint: `${metrics.activeUsers} ativos` },
+    { label: "Usuários bloqueados", value: String(metrics.blockedUsers), hint: `${metrics.newUsersToday} novos hoje` },
+    { label: "Padarias totais", value: String(metrics.totalTenants), hint: `${metrics.activeTenants} ativas` },
+    { label: "Inadimplentes", value: String(metrics.delinquentTenants), hint: "clientes" },
+    { label: "Assinaturas ativas", value: String(metrics.subscriptionsActive), hint: `${metrics.subscriptionsCancelled} canceladas` },
+    { label: "Assinaturas vencidas", value: String(metrics.subscriptionsOverdue), hint: `${metrics.subscriptionsSuspended} suspensas` },
+    { label: "Novos usuários 7 dias", value: String(metrics.newUsers7Days), hint: "cadastros" },
+    { label: "Churn 30 dias", value: String(metrics.churnLast30Days), hint: "assinaturas canceladas" },
   ];
 
   return (
@@ -105,6 +108,26 @@ export default async function PlatformDashboardPage() {
           )}
         </section>
       </div>
+
+      <section className="rounded-xl border border-black/10 bg-white p-5">
+        <h2 className="text-sm font-semibold">Crescimento de padarias</h2>
+        {growth.length === 0 ? (
+          <p className="mt-3 text-sm text-ink-muted">Sem dados.</p>
+        ) : (
+          <div className="mt-4 flex items-end gap-2">
+            {growth.map((row) => {
+              const max = Math.max(...growth.map((item) => item.count), 1);
+              const height = Math.max(8, (row.count / max) * 120);
+              return (
+                <div key={row.month} className="flex flex-1 flex-col items-center gap-2">
+                  <div className="w-full rounded-t-md bg-brand-600" style={{ height }} />
+                  <span className="text-[10px] text-ink-muted">{row.month.slice(5)}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-black/10 bg-white p-5">

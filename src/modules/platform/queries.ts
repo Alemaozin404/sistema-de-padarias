@@ -1,19 +1,27 @@
 import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { getDb, withTenant, type Database } from "@/lib/db";
 import {
+  account,
   auditLogs,
   backupRuns,
   coupons,
   featureDefinitions,
   invoices,
+  memberships,
+  payments,
+  products,
   planFeatures,
   plans,
+  platformAdmins,
   platformIncidents,
+  platformSettings,
   securityEvents,
+  session as sessionTable,
   subscriptions,
   systemHealthChecks,
   tenantDiscounts,
   tenants,
+  user as userTable,
   webhookEvents,
 } from "@/db/schema";
 
@@ -405,4 +413,276 @@ export async function getSystemSnapshot() {
   ]);
 
   return { backups, health, incidents, webhookFailures, security };
+}
+
+export type PlatformUser = {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  emailVerified: boolean;
+  createdAt: Date;
+  lastLoginAt: Date | null;
+  memberships: Array<{ tenantId: string; tradeName: string; role: string; status: string }>;
+  activeSessions: number;
+};
+
+export async function listPlatformUsers(): Promise<PlatformUser[]> {
+  const users = await getDb()
+    .select({
+      id: userTable.id,
+      name: userTable.name,
+      email: userTable.email,
+      status: userTable.status,
+      emailVerified: userTable.emailVerified,
+      createdAt: userTable.createdAt,
+      lastLoginAt: userTable.lastLoginAt,
+    })
+    .from(userTable)
+    .orderBy(desc(userTable.createdAt));
+
+  const membershipRows = await getDb()
+    .select({
+      userId: memberships.userId,
+      tenantId: memberships.tenantId,
+      tradeName: tenants.tradeName,
+      role: memberships.role,
+      status: memberships.status,
+    })
+    .from(memberships)
+    .innerJoin(tenants, eq(tenants.id, memberships.tenantId));
+
+  const sessionCounts = await getDb()
+    .select({ userId: sessionTable.userId, count: sql<number>`count(*)::int` })
+    .from(sessionTable)
+    .where(gte(sessionTable.expiresAt, new Date()))
+    .groupBy(sessionTable.userId);
+
+  const sessionsByUser = new Map(sessionCounts.map((row) => [row.userId, row.count]));
+
+  return users.map((userRow) => ({
+    ...userRow,
+    memberships: membershipRows
+      .filter((membership) => membership.userId === userRow.id)
+      .map((membership) => ({
+        tenantId: membership.tenantId,
+        tradeName: membership.tradeName,
+        role: membership.role,
+        status: membership.status,
+      })),
+    activeSessions: sessionsByUser.get(userRow.id) ?? 0,
+  }));
+}
+
+export async function getPlatformUserDetail(userId: string) {
+  const [userRow] = await getDb().select().from(userTable).where(eq(userTable.id, userId)).limit(1);
+  if (!userRow) return null;
+
+  const membershipRows = await getDb()
+    .select({
+      membership: memberships,
+      tenant: tenants,
+    })
+    .from(memberships)
+    .innerJoin(tenants, eq(tenants.id, memberships.tenantId))
+    .where(eq(memberships.userId, userId));
+
+  const sessions = await getDb()
+    .select()
+    .from(sessionTable)
+    .where(eq(sessionTable.userId, userId))
+    .orderBy(desc(sessionTable.createdAt))
+    .limit(20);
+
+  const audit = await getDb()
+    .select()
+    .from(auditLogs)
+    .where(eq(auditLogs.actorId, userId))
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(100);
+
+  const adminRow = await getDb()
+    .select()
+    .from(platformAdmins)
+    .where(eq(platformAdmins.userId, userId))
+    .limit(1);
+
+  return { user: userRow, memberships: membershipRows, sessions, audit, admin: adminRow[0] ?? null };
+}
+
+export type FinanceSnapshot = {
+  totalRevenueCents: number;
+  pendingCents: number;
+  approvedPayments: number;
+  refusedPayments: number;
+  pendingPayments: number;
+  mrrCents: number;
+  arrCents: number;
+  byPlan: Array<{ name: string; clients: number; mrrCents: number }>;
+  recentPayments: Array<{
+    id: string;
+    tenantId: string;
+    tradeName: string;
+    method: string;
+    amountCents: number;
+    status: string;
+    paidAt: Date | null;
+    createdAt: Date;
+  }>;
+  overdueClients: Array<{ tradeName: string; tenantId: string; overdueCents: number; overdueInvoices: number }>;
+};
+
+export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
+  const overview = await getPlatformOverview();
+  const allPayments = await getDb()
+    .select({
+      payment: payments,
+      tradeName: tenants.tradeName,
+    })
+    .from(payments)
+    .innerJoin(tenants, eq(tenants.id, payments.tenantId))
+    .orderBy(desc(payments.createdAt))
+    .limit(100);
+
+  const [revenue] = await getDb()
+    .select({ total: sql<string>`coalesce(sum(${payments.amountCents}), 0)` })
+    .from(payments)
+    .where(eq(payments.status, "PAID"));
+
+  const counts = await getDb()
+    .select({ status: payments.status, count: sql<number>`count(*)::int` })
+    .from(payments)
+    .groupBy(payments.status);
+
+  const statusMap = new Map(counts.map((row) => [row.status, row.count]));
+
+  return {
+    totalRevenueCents: Number(revenue?.total ?? 0),
+    pendingCents: overview.overdueCents,
+    approvedPayments: statusMap.get("PAID") ?? 0,
+    refusedPayments: statusMap.get("REFUSED") ?? statusMap.get("FAILED") ?? 0,
+    pendingPayments: statusMap.get("PENDING") ?? 0,
+    mrrCents: overview.mrrCents,
+    arrCents: overview.mrrCents * 12,
+    byPlan: overview.byPlan.map((plan) => ({
+      name: plan.name,
+      clients: plan.clients,
+      mrrCents: plan.mrrCents,
+    })),
+    recentPayments: allPayments.map((row) => ({
+      id: row.payment.id,
+      tenantId: row.payment.tenantId,
+      tradeName: row.tradeName,
+      method: row.payment.method,
+      amountCents: row.payment.amountCents,
+      status: row.payment.status,
+      paidAt: row.payment.paidAt,
+      createdAt: row.payment.createdAt,
+    })),
+    overdueClients: overview.clients
+      .filter((client) => client.overdueCents > 0)
+      .map((client) => ({
+        tradeName: client.tradeName,
+        tenantId: client.tenantId,
+        overdueCents: client.overdueCents,
+        overdueInvoices: client.overdueInvoices,
+      })),
+  };
+}
+
+export async function listPlatformSubscriptions() {
+  const rows = await getDb()
+    .select({
+      subscription: subscriptions,
+      tenant: tenants,
+      plan: plans,
+    })
+    .from(subscriptions)
+    .innerJoin(tenants, eq(tenants.id, subscriptions.tenantId))
+    .innerJoin(plans, eq(plans.id, subscriptions.planId))
+    .orderBy(desc(subscriptions.createdAt));
+  return rows;
+}
+
+export async function listSecurityEvents(limit = 100) {
+  return getDb().select().from(securityEvents).orderBy(desc(securityEvents.createdAt)).limit(limit);
+}
+
+export async function getPlatformSettings() {
+  const rows = await getDb().select().from(platformSettings);
+  return rows;
+}
+
+export async function getTenantUsageSummary(tenantId: string) {
+  return withTenant(tenantId, async (tx) => {
+    const [productCount] = await tx.select({ count: sql<number>`count(*)::int` }).from(products);
+    return { productCount: productCount?.count ?? 0 };
+  });
+}
+
+export async function getMasterMetrics() {
+  const now = new Date();
+  const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const [totalUsers] = await getDb().select({ count: sql<number>`count(*)::int` }).from(userTable);
+  const [activeUsers] = await getDb()
+    .select({ count: sql<number>`count(*)::int` })
+    .from(userTable)
+    .where(eq(userTable.status, "ACTIVE"));
+  const [blockedUsers] = await getDb()
+    .select({ count: sql<number>`count(*)::int` })
+    .from(userTable)
+    .where(eq(userTable.status, "BLOCKED"));
+  const [newToday] = await getDb()
+    .select({ count: sql<number>`count(*)::int` })
+    .from(userTable)
+    .where(gte(userTable.createdAt, todayStart));
+  const [new7Days] = await getDb()
+    .select({ count: sql<number>`count(*)::int` })
+    .from(userTable)
+    .where(gte(userTable.createdAt, sevenDaysAgo));
+
+  const overview = await getPlatformOverview();
+  const subscriptionRows = await getDb()
+    .select({ status: subscriptions.status, count: sql<number>`count(*)::int` })
+    .from(subscriptions)
+    .groupBy(subscriptions.status);
+
+  const subMap = new Map(subscriptionRows.map((row) => [row.status, row.count]));
+
+  return {
+    totalUsers: totalUsers?.count ?? 0,
+    activeUsers: activeUsers?.count ?? 0,
+    blockedUsers: blockedUsers?.count ?? 0,
+    newUsersToday: newToday?.count ?? 0,
+    newUsers7Days: new7Days?.count ?? 0,
+    totalTenants: overview.totalTenants,
+    activeTenants: overview.activeClients,
+    delinquentTenants: overview.delinquentClients,
+    newTenantsThisMonth: overview.newTenantsThisMonth,
+    mrrCents: overview.mrrCents,
+    arrCents: overview.mrrCents * 12,
+    revenueThisMonthCents: overview.revenueThisMonthCents,
+    overdueCents: overview.overdueCents,
+    churnLast30Days: overview.churnLast30Days,
+    subscriptionsActive: subMap.get("ACTIVE") ?? 0,
+    subscriptionsCancelled: subMap.get("CANCELLED") ?? 0,
+    subscriptionsOverdue: subMap.get("PAST_DUE") ?? 0,
+    subscriptionsSuspended: subMap.get("SUSPENDED") ?? 0,
+  };
+}
+
+export async function getMonthlyGrowth() {
+  const rows = await getDb()
+    .select({
+      month: sql<string>`to_char(date_trunc('month', ${tenants.createdAt}), 'YYYY-MM')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(tenants)
+    .where(gte(tenants.createdAt, new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)))
+    .groupBy(sql`date_trunc('month', ${tenants.createdAt})`)
+    .orderBy(sql`date_trunc('month', ${tenants.createdAt})`);
+
+  return rows;
 }

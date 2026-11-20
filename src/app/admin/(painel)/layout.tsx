@@ -8,10 +8,19 @@ export const dynamic = "force-dynamic";
 
 const NAV = [
   { href: "/admin", label: "Visão geral" },
-  { href: "/admin/clientes", label: "Clientes" },
+  { href: "/admin/usuarios", label: "Usuários" },
+  { href: "/admin/clientes", label: "Padarias" },
+  { href: "/admin/atividades", label: "Atividades" },
+  { href: "/admin/financeiro", label: "Financeiro" },
+  { href: "/admin/assinaturas", label: "Assinaturas" },
   { href: "/admin/planos", label: "Planos" },
-  { href: "/admin/cupons", label: "Cupons e descontos" },
+  { href: "/admin/inadimplencia", label: "Inadimplência" },
+  { href: "/admin/suporte", label: "Suporte" },
+  { href: "/admin/monitoramento", label: "Monitoramento" },
+  { href: "/admin/seguranca", label: "Segurança" },
   { href: "/admin/auditoria", label: "Auditoria" },
+  { href: "/admin/cupons", label: "Cupons" },
+  { href: "/admin/configuracoes", label: "Configurações" },
   { href: "/admin/sistema", label: "Sistema" },
 ];
 
@@ -30,7 +39,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-5">
             <Link href="/admin" className="font-display text-lg font-semibold tracking-tight text-brand-700">
-              Plataforma
+              MASTER CONTROL
             </Link>
             <nav className="flex flex-wrap gap-4 text-sm">
               {NAV.map((item) => (

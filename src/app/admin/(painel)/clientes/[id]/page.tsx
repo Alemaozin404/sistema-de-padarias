@@ -163,8 +163,8 @@ export default async function PlatformClientPage({
       <section className="rounded-xl border border-black/10 bg-white p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold">Faturas recentes</h2>
-          <Link href="/admin/cupons" className="text-xs text-brand-700 hover:underline">
-            Desconto negociado
+          <Link href={`/admin/clientes/${tenant.id}/visualizar`} className="text-xs text-brand-700 hover:underline">
+            Visualizar ambiente
           </Link>
         </div>
 
