@@ -52,6 +52,7 @@ export function generateTotpSecret(): string {
 }
 
 function hotp(secret: string, counter: number): string {
+  if (counter < 0) throw new Error("Contador TOTP inválido.");
   const key = base32Decode(secret);
   const buffer = Buffer.alloc(8);
   buffer.writeBigUInt64BE(BigInt(counter));
@@ -79,7 +80,7 @@ export function verifyTotp(
   secret: string,
   token: string,
   atMs: number = Date.now(),
-  window = 1,
+  window = 2,
 ): number | null {
   const normalized = token.replace(/\s/g, "");
   if (!/^\d{6}$/.test(normalized)) return null;
@@ -88,7 +89,9 @@ export function verifyTotp(
   const provided = Buffer.from(normalized);
 
   for (let delta = -window; delta <= window; delta += 1) {
-    const candidate = Buffer.from(hotp(secret, step + delta));
+    const counter = step + delta;
+    if (counter < 0) continue;
+    const candidate = Buffer.from(hotp(secret, counter));
     if (candidate.length === provided.length && timingSafeEqual(candidate, provided)) {
       return step + delta;
     }
@@ -104,12 +107,14 @@ export function otpauthUrl(input: {
 }): string {
   const issuer = input.issuer ?? "Gestão para padarias";
   const label = encodeURIComponent(`${issuer}:${input.email}`);
-  const params = new URLSearchParams({
-    secret: input.secret,
-    issuer,
-    algorithm: "SHA1",
-    digits: "6",
-    period: String(STEP_SECONDS),
-  });
-  return `otpauth://totp/${label}?${params.toString()}`;
+  // URLSearchParams codifica espaços como "+", o que alguns aplicativos
+  // autenticadores não interpretam corretamente; usamos %20 (RFC 3986).
+  const params = [
+    `secret=${encodeURIComponent(input.secret)}`,
+    `issuer=${encodeURIComponent(issuer)}`,
+    "algorithm=SHA1",
+    "digits=6",
+    `period=${STEP_SECONDS}`,
+  ].join("&");
+  return `otpauth://totp/${label}?${params}`;
 }

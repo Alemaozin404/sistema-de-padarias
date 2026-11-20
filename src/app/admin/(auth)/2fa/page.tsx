@@ -28,9 +28,13 @@ export default async function PlatformTwoFactorPage() {
       {!session.totpEnabledAt ? (
         <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <p className="font-medium">Primeiro acesso: cadastre esta chave</p>
+          <p className="mt-2 text-xs">
+            Digite a chave no aplicativo sem espaços. Agrupada apenas para leitura.
+          </p>
           <code className="mt-2 block break-all rounded-lg bg-white/70 p-3 font-mono text-base tracking-wider">
-            {grouped}
+            {secret}
           </code>
+          <p className="mt-2 break-all font-mono text-xs text-amber-800">{grouped}</p>
           <p className="mt-2 break-all text-xs text-amber-800">{uri}</p>
           <p className="mt-2 text-xs">
             Guarde a chave em local seguro. Sem ela e sem os códigos futuros, o acesso

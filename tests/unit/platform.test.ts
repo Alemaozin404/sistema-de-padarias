@@ -31,6 +31,7 @@ describe("TOTP", () => {
     const step = verifyTotp(secret, code, at);
     expect(step).toBe(Math.floor(at / 1000 / 30));
     expect(verifyTotp(secret, code, at + 30_000)).not.toBeNull();
+    expect(verifyTotp(secret, code, at + 120_000)).toBeNull();
     expect(verifyTotp(secret, "000000", at)).toBeNull();
     expect(verifyTotp(secret, "abc", at)).toBeNull();
   });
@@ -48,6 +49,7 @@ describe("TOTP", () => {
     expect(uri.startsWith("otpauth://totp/")).toBe(true);
     expect(uri).toContain("secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
     expect(uri).toContain("dono%40padaria.com");
+    expect(uri).toContain("issuer=Gest%C3%A3o%20para%20padarias");
   });
 });
 
