@@ -12,6 +12,7 @@ export type PublicFeature = {
 };
 
 export type PublicPlan = {
+  id: string;
   code: string;
   name: string;
   description: string | null;
@@ -30,6 +31,7 @@ export async function listPublicPlans(): Promise<PublicPlan[]> {
 
   const rows = await db
     .select({
+      id: plans.id,
       code: plans.code,
       name: plans.name,
       description: plans.description,
@@ -56,6 +58,7 @@ export async function listPublicPlans(): Promise<PublicPlan[]> {
     let plan = byCode.get(row.code);
     if (!plan) {
       plan = {
+        id: row.id,
         code: row.code,
         name: row.name,
         description: row.description,

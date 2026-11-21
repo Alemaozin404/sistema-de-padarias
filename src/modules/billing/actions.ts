@@ -63,12 +63,14 @@ export async function startCheckoutAction(
   }
 
   const document = String(formData.get("document") ?? "").trim();
+  const planId = String(formData.get("planId") ?? "").trim() || null;
 
   try {
     await startCheckout({
       tenantId: membership.tenantId,
       actorId: membership.userId,
       document: document || null,
+      planId,
     });
     refresh();
     return { success: "Cobrança Pix gerada. Pague pelo código ou pelo link abaixo." };

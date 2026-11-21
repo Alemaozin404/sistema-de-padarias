@@ -169,6 +169,7 @@ export async function createInitialInvoice(input: {
   tenantId: string;
   actorId: string;
   document?: string | null;
+  planId?: string | null;
 }): Promise<{ invoice: InvoiceRow; resumed: boolean }> {
   let context = await loadBillingContext(input.tenantId);
 
@@ -178,6 +179,29 @@ export async function createInitialInvoice(input: {
 
   if (context.subscription.status === "CANCELLED") {
     throw new BillingError("CANCELLED", "Assinatura encerrada não gera nova cobrança.");
+  }
+
+  // Permite escolher/trocar o plano enquanto a assinatura ainda não foi paga.
+  if (input.planId && context.subscription.status === "PENDING") {
+    const [chosen] = await getDb()
+      .select()
+      .from(plans)
+      .where(and(eq(plans.id, input.planId), eq(plans.isActive, true)))
+      .limit(1);
+    if (chosen) {
+      await withTenant(input.tenantId, (tx) =>
+        tx
+          .update(subscriptions)
+          .set({
+            planId: chosen.id,
+            priceCents: chosen.priceCents,
+            activationFeeCents: chosen.activationFeeCents,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, context.subscription.id)),
+      );
+      context = await loadBillingContext(input.tenantId);
+    }
   }
 
   if (input.document) {
@@ -497,6 +521,7 @@ export async function startCheckout(input: {
   tenantId: string;
   actorId: string;
   document?: string | null;
+  planId?: string | null;
 }): Promise<InvoiceRow> {
   const { invoice } = await createInitialInvoice(input);
   return ensureChargeForInvoice({

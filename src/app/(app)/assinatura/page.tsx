@@ -2,12 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthError, requireTenant } from "@/lib/auth";
 import { getTenantOverview } from "@/modules/billing/queries";
+import { listPublicPlans } from "@/modules/plans/queries";
 import { listUpgradeOptions } from "@/modules/billing/upgrades";
 import { listInvoices, type InvoiceRow } from "@/modules/billing/service";
 import { isGatewayConfigured } from "@/modules/billing/gateway";
 import { todayIso } from "@/modules/billing/rules";
 import { formatBRL } from "@/modules/shared/money";
-import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm, RequestCancellationForm, RequestRefundForm, UpgradeForm } from "@/components/billing/billing-forms";
+import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm, RequestCancellationForm, RequestRefundForm, SubscribePlanForm, UpgradeForm } from "@/components/billing/billing-forms";
 import { pendingRemainingCents } from "@/modules/billing/upgrades";
 import { listRefundRequests } from "@/modules/billing/refunds";
 import { MercadoPagoCheckout } from "@/components/billing/mercadopago-checkout";
@@ -87,6 +88,10 @@ export default async function AssinaturaPage() {
     overview?.subscription?.status === "ACTIVE"
       ? await pendingRemainingCents(membership.tenantId)
       : 0;
+  const publicPlans =
+    overview?.subscription?.status !== "ACTIVE"
+      ? await listPublicPlans().catch(() => [])
+      : [];
 
   const refundedProcessed = refundRequests.find((r) => r.status === "PROCESSED");
 
@@ -142,9 +147,28 @@ export default async function AssinaturaPage() {
             disponíveis para consulta e exportação.
           </div>
         ) : (
-          <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
-            Nenhuma assinatura encontrada. Fale com o suporte.
-          </p>
+          <div className="space-y-4">
+            <p className="rounded-xl border border-border bg-surface p-6 text-sm text-ink-muted">
+              Nenhuma assinatura ativa encontrada. Escolha um plano abaixo para assinar ou fale
+              com o suporte.
+            </p>
+            {publicPlans.length > 0 ? (
+              <section className="rounded-2xl border border-border bg-surface p-6">
+                <h2 className="text-lg font-semibold">Planos disponíveis</h2>
+                <div className="mt-4 grid gap-4 md:grid-cols-3">
+                  {publicPlans.map((plan) => (
+                    <div key={plan.code} className="rounded-xl border border-border p-4">
+                      <p className="font-semibold">{plan.name}</p>
+                      <p className="text-sm text-ink-muted">{formatBRL(plan.priceCents)}/mês</p>
+                      <p className="mt-1 text-xs text-ink-muted">
+                        Primeiro pagamento: {formatBRL(plan.priceCents + plan.activationFeeCents)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
         )
       ) : (
         <>
@@ -304,6 +328,29 @@ export default async function AssinaturaPage() {
               Nenhuma cobrança em aberto. Próximo vencimento:{" "}
               {formatDate(subscription.nextDueDate)}.
             </p>
+          ) : null}
+
+          {publicPlans.length > 0 ? (
+            <section className="rounded-2xl border border-border bg-surface p-6">
+              <h2 className="text-lg font-semibold">Planos disponíveis</h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                Escolha o plano ideal para o seu estabelecimento. A assinatura é ativada após a confirmação do pagamento.
+              </p>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                {publicPlans.map((plan) => (
+                  <div key={plan.code} className="rounded-xl border border-border p-4">
+                    <p className="font-semibold">{plan.name}</p>
+                    <p className="text-sm text-ink-muted">{formatBRL(plan.priceCents)}/mês</p>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      Primeiro pagamento: {formatBRL(plan.priceCents + plan.activationFeeCents)}
+                    </p>
+                    <div className="mt-3">
+                      <SubscribePlanForm planId={plan.id} label={`Assinar ${plan.name}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           ) : null}
 
           {upgradeOptions.length > 0 ? (

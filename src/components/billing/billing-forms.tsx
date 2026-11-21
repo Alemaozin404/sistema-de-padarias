@@ -161,6 +161,25 @@ export function RequestCancellationForm() {
   );
 }
 
+export function SubscribePlanForm({ planId, label }: { planId: string; label: string }) {
+  const [state, formAction, pending] = useActionState(startCheckoutAction, initialState);
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <input type="hidden" name="planId" value={planId} />
+      <Feedback state={state} />
+      <DocumentField hint="Obrigatório se o estabelecimento ainda não tiver CPF/CNPJ cadastrado." />
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+      >
+        {pending ? "Gerando cobrança…" : label}
+      </button>
+    </form>
+  );
+}
+
 export function UpgradeForm({ toPlanId, label }: { toPlanId: string; label: string }) {
   const [state, formAction, pending] = useActionState(requestUpgradeAction, initialState);
 
