@@ -17,6 +17,7 @@ import {
 } from "./service";
 import { requestCancellation, confirmCancellation } from "./cancellations";
 import { requestRefund, transitionRefund } from "./refunds";
+import { cancelPendingUpgrade, requestUpgrade } from "./upgrades";
 import { CancellationError } from "./cancellations";
 import { RefundError } from "./refunds";
 
@@ -187,6 +188,80 @@ export async function cancelChargeAction(
 
 export const cancelInvoiceAction = cancelChargeAction;
 export const voidInvoiceAction = cancelChargeAction;
+
+const upgradeSchema = z.object({
+  toPlanId: z.uuid(),
+  document: z.string().optional(),
+});
+
+export async function requestUpgradeAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let membership;
+  try {
+    membership = await requireTenant(["OWNER", "MANAGER"]);
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  if (!isGatewayConfigured()) {
+    return {
+      error:
+        "Pagamento online não configurado neste ambiente. Peça ao suporte para configurar MP_ACCESS_TOKEN.",
+    };
+  }
+
+  const parsed = upgradeSchema.safeParse({
+    toPlanId: formData.get("toPlanId"),
+    document: formData.get("document") || undefined,
+  });
+  if (!parsed.success) return { error: "Plano de destino inválido." };
+
+  try {
+    await requestUpgrade({
+      tenantId: membership.tenantId,
+      actorId: membership.userId,
+      toPlanId: parsed.data.toPlanId,
+      document: parsed.data.document ?? null,
+    });
+    refresh();
+    return { success: "Upgrade solicitado. Pague a entrada para confirmar." };
+  } catch (error) {
+    if (error instanceof BillingError) return { error: error.message };
+    return { error: messageForError(error) };
+  }
+}
+
+export async function cancelUpgradeAction(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  let membership;
+  try {
+    membership = await requireTenant(["OWNER", "MANAGER"]);
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+
+  const parsed = z.object({ upgradeId: z.uuid() }).safeParse({
+    upgradeId: formData.get("upgradeId"),
+  });
+  if (!parsed.success) return { error: "Upgrade inválido." };
+
+  try {
+    const ok = await cancelPendingUpgrade({
+      tenantId: membership.tenantId,
+      upgradeId: parsed.data.upgradeId,
+      actorId: membership.userId,
+    });
+    if (!ok) return { error: "Upgrade não pode ser cancelado." };
+    refresh();
+    return { success: "Upgrade cancelado." };
+  } catch (error) {
+    return { error: messageForError(error) };
+  }
+}
 
 const manualPaymentSchema = z.object({
   tenantId: z.uuid(),

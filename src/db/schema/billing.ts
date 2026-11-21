@@ -381,3 +381,51 @@ export const refundRequests = pgTable(
     check("refund_requests_amount_non_negative", sql`${t.amountCents} >= 0`),
   ],
 );
+
+/**
+ * Operação de upgrade de plano. A entrada (50% do valor com desconto) é cobrada
+ * imediatamente; o restante é programado para a próxima mensalidade.
+ */
+export const subscriptionUpgrades = pgTable(
+  "subscription_upgrades",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => subscriptions.id, { onDelete: "cascade" }),
+    fromPlanId: uuid("from_plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "restrict" }),
+    toPlanId: uuid("to_plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "restrict" }),
+    fromPriceCents: integer("from_price_cents").notNull(),
+    toPriceCents: integer("to_price_cents").notNull(),
+    originalAmountCents: integer("original_amount_cents").notNull(),
+    discountPercent: integer("discount_percent").notNull().default(25),
+    discountAmountCents: integer("discount_amount_cents").notNull().default(0),
+    finalAmountCents: integer("final_amount_cents").notNull(),
+    entryAmountCents: integer("entry_amount_cents").notNull(),
+    remainingAmountCents: integer("remaining_amount_cents").notNull(),
+    status: text("status").notNull().default("PENDING_PAYMENT"), // PENDING_PAYMENT | CONFIRMED | FAILED | CANCELLED
+    entryInvoiceId: uuid("entry_invoice_id").references(() => invoices.id, { onDelete: "set null" }),
+    remainingInvoiceId: uuid("remaining_invoice_id").references(() => invoices.id, { onDelete: "set null" }),
+    remainingScheduled: boolean("remaining_scheduled").notNull().default(false),
+    nextDueDate: date("next_due_date"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("subscription_upgrades_tenant_idx").on(t.tenantId, t.createdAt),
+    index("subscription_upgrades_status_idx").on(t.status, t.createdAt),
+    check("subscription_upgrades_prices_non_negative", sql`${t.fromPriceCents} >= 0 AND ${t.toPriceCents} >= 0`),
+    check("subscription_upgrades_amounts_non_negative", sql`${t.originalAmountCents} >= 0 AND ${t.finalAmountCents} >= 0 AND ${t.entryAmountCents} >= 0 AND ${t.remainingAmountCents} >= 0`),
+  ],
+);

@@ -9,6 +9,7 @@ import {
   subscriptions,
   subscriptionStatusHistory,
   subscriptionGrants,
+  subscriptionUpgrades,
   tenantDiscounts,
   tenants,
 } from "@/db/schema";
@@ -625,6 +626,17 @@ export async function applyConfirmedPayment(
 
     if (!subscription) throw new BillingError("NO_SUBSCRIPTION", "Assinatura não encontrada.");
 
+    const isUpgradeInvoice = invoice.kind === "UPGRADE";
+
+    // Carrega upgrade vinculado à fatura de entrada (se houver).
+    const [linkedUpgrade] = isUpgradeInvoice
+      ? await tx
+          .select()
+          .from(subscriptionUpgrades)
+          .where(eq(subscriptionUpgrades.entryInvoiceId, invoice.id))
+          .limit(1)
+      : [];
+
     if (subscription.status !== "CANCELLED") {
       const period = paidPeriod(paidAt);
       const isRenewal = invoice.kind === "RENEWAL";
@@ -648,21 +660,55 @@ export async function applyConfirmedPayment(
 
       const fromStatus = subscription.status;
 
-      await tx
-        .update(subscriptions)
-        .set({
-          status: "ACTIVE",
-          startedAt: subscription.startedAt ?? paidAt,
-          currentPeriodStart: periodStart,
-          currentPeriodEnd: periodEnd,
-          nextDueDate,
-          restrictedAt: null,
-          suspendedAt: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(subscriptions.id, subscription.id));
+      if (isUpgradeInvoice && linkedUpgrade) {
+        // Upgrade confirmado: troca o plano/preço, mas preserva o ciclo atual.
+        await tx
+          .update(subscriptions)
+          .set({
+            planId: linkedUpgrade.toPlanId,
+            priceCents: linkedUpgrade.toPriceCents,
+            status: "ACTIVE",
+            restrictedAt: null,
+            suspendedAt: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, subscription.id));
 
-      if (fromStatus !== "ACTIVE") {
+        await tx
+          .update(subscriptionUpgrades)
+          .set({
+            status: "CONFIRMED",
+            confirmedAt: paidAt,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptionUpgrades.id, linkedUpgrade.id));
+
+        await tx.insert(auditLogs).values({
+          tenantId: input.tenantId,
+          actorType: input.actorType,
+          actorId: input.actorId ?? null,
+          action: "upgrade.confirmed",
+          entityType: "subscription_upgrade",
+          entityId: linkedUpgrade.id,
+          after: { planId: linkedUpgrade.toPlanId, priceCents: linkedUpgrade.toPriceCents },
+        });
+      } else {
+        await tx
+          .update(subscriptions)
+          .set({
+            status: "ACTIVE",
+            startedAt: subscription.startedAt ?? paidAt,
+            currentPeriodStart: periodStart,
+            currentPeriodEnd: periodEnd,
+            nextDueDate,
+            restrictedAt: null,
+            suspendedAt: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, subscription.id));
+      }
+
+      if (!isUpgradeInvoice && fromStatus !== "ACTIVE") {
         await tx.insert(subscriptionStatusHistory).values({
           tenantId: input.tenantId,
           subscriptionId: subscription.id,
@@ -851,6 +897,19 @@ export async function cancelInvoice(input: {
       .where(and(eq(invoices.id, invoice.id), eq(invoices.tenantId, input.tenantId)))
       .returning();
 
+    // Se a fatura anulada era a entrada de um upgrade pendente, cancela o upgrade
+    // para não deixar operação órfã bloqueando novos upgrades.
+    await tx
+      .update(subscriptionUpgrades)
+      .set({ status: "CANCELLED", cancelledAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(subscriptionUpgrades.entryInvoiceId, invoice.id),
+          eq(subscriptionUpgrades.tenantId, input.tenantId),
+          eq(subscriptionUpgrades.status, "PENDING_PAYMENT"),
+        ),
+      );
+
     await tx.insert(auditLogs).values({
       tenantId: input.tenantId,
       actorType: input.actorId ? "USER" : "SYSTEM",
@@ -1002,9 +1061,24 @@ export async function generateRenewalInvoices(now: Date = new Date()): Promise<n
       const grant = await getActiveGrant(tenantId, subscription.id);
       const grantDiscount = grant ? grantDiscountCents(grant, subscription.priceCents) : 0;
       const discountCents = Math.min(subscription.priceCents, negotiatedDiscount + grantDiscount);
+
+      // Inclui valores restantes de upgrades confirmados ainda não faturados.
+      const pendingUpgrades = await tx
+        .select({ id: subscriptionUpgrades.id, remaining: subscriptionUpgrades.remainingAmountCents })
+        .from(subscriptionUpgrades)
+        .where(
+          and(
+            eq(subscriptionUpgrades.tenantId, tenantId),
+            eq(subscriptionUpgrades.subscriptionId, subscription.id),
+            eq(subscriptionUpgrades.status, "CONFIRMED"),
+            eq(subscriptionUpgrades.remainingScheduled, false),
+          ),
+        );
+      const remainingTotal = pendingUpgrades.reduce((sum, u) => sum + (u.remaining ?? 0), 0);
+
       const totalCents = invoiceTotalCents({
         planAmountCents: subscription.priceCents,
-        activationAmountCents: 0,
+        activationAmountCents: remainingTotal,
         discountCents,
       });
       const appliedGrantId = grant?.id ?? null;
@@ -1015,13 +1089,28 @@ export async function generateRenewalInvoices(now: Date = new Date()): Promise<n
         kind: "RENEWAL",
         status: "OPEN",
         planAmountCents: subscription.priceCents,
-        activationAmountCents: 0,
+        activationAmountCents: remainingTotal,
         discountCents,
         totalCents,
         dueDate: subscription.nextDueDate,
-        description: `${plan?.name ?? "Plano"} — renovação mensal`,
+        description: `${plan?.name ?? "Plano"} — renovação mensal${remainingTotal > 0 ? " + upgrade" : ""}`,
         appliedGrantId,
       }).returning();
+
+      if (createdInvoice && pendingUpgrades.length > 0) {
+        await tx
+          .update(subscriptionUpgrades)
+          .set({ remainingScheduled: true, remainingInvoiceId: createdInvoice.id, updatedAt: new Date() })
+          .where(
+            and(
+              eq(subscriptionUpgrades.tenantId, tenantId),
+              inArray(
+                subscriptionUpgrades.id,
+                pendingUpgrades.map((u) => u.id),
+              ),
+            ),
+          );
+      }
 
       if (totalCents === 0 && createdInvoice) {
         promoInvoices.push({ tenantId, invoiceId: createdInvoice.id });
@@ -1125,4 +1214,48 @@ export async function reconcileOpenInvoices(): Promise<{
   }
 
   return { checked, paid, failed };
+}
+
+/** Trata reembolso/estorno de fatura de upgrade. */
+export async function handleUpgradeRefund(input: {
+  tenantId: string;
+  invoiceId: string;
+}): Promise<void> {
+  await withTenant(input.tenantId, async (tx) => {
+    const [upgrade] = await tx
+      .select()
+      .from(subscriptionUpgrades)
+      .where(eq(subscriptionUpgrades.entryInvoiceId, input.invoiceId))
+      .limit(1);
+    if (!upgrade) return;
+
+    if (upgrade.status === "CONFIRMED") {
+      // Reverte o plano se o reembolso for confirmado.
+      const [subscription] = await tx
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.id, upgrade.subscriptionId))
+        .limit(1);
+      if (subscription && subscription.planId === upgrade.toPlanId) {
+        await tx
+          .update(subscriptions)
+          .set({
+            planId: upgrade.fromPlanId,
+            priceCents: upgrade.fromPriceCents,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, subscription.id));
+      }
+    }
+
+    await tx
+      .update(subscriptionUpgrades)
+      .set({
+        status: "CANCELLED",
+        cancelledAt: new Date(),
+        remainingScheduled: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptionUpgrades.id, upgrade.id));
+  });
 }

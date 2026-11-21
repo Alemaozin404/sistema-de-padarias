@@ -29,6 +29,7 @@ const GROUPS: NavGroup[] = [
     title: "Assinaturas e planos",
     items: [
       { href: "/admin/assinaturas", label: "Assinaturas" },
+      { href: "/admin/upgrades", label: "Upgrades" },
       { href: "/admin/planos", label: "Planos" },
       { href: "/admin/inadimplencia", label: "Inadimplência" },
     ],

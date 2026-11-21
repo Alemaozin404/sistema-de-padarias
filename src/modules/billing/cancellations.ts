@@ -1,6 +1,6 @@
 import { and, eq, ne } from "drizzle-orm";
 import { withTenant } from "@/lib/db";
-import { auditLogs, cancellationRequests, invoices, subscriptions, subscriptionStatusHistory } from "@/db/schema";
+import { auditLogs, cancellationRequests, invoices, subscriptions, subscriptionStatusHistory, subscriptionUpgrades } from "@/db/schema";
 import { BillingError } from "./service";
 
 export type CancellationErrorCode = "NOT_FOUND" | "NO_SUBSCRIPTION" | "ALREADY_CANCELLED";
@@ -117,6 +117,17 @@ export async function confirmCancellation(input: {
         .set({ status: "VOID", updatedAt: now })
         .where(eq(invoices.id, inv.id));
     }
+
+    // Cancela upgrades pendentes vinculados à assinatura.
+    await tx
+      .update(subscriptionUpgrades)
+      .set({ status: "CANCELLED", cancelledAt: now, updatedAt: now })
+      .where(
+        and(
+          eq(subscriptionUpgrades.subscriptionId, subscription.id),
+          eq(subscriptionUpgrades.status, "PENDING_PAYMENT"),
+        ),
+      );
 
     if (input.requestId) {
       await tx

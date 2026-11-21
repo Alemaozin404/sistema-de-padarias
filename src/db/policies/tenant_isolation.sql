@@ -43,6 +43,7 @@ DECLARE
     'invoices',
     'payments',
     'notification_log',
+    'subscription_upgrades',
     'tenant_discounts',
     'categories',
     'products',
@@ -293,6 +294,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON "user", session, account, verification T
 GRANT SELECT, INSERT, UPDATE ON plans, plan_features TO app_runtime;
 GRANT SELECT ON feature_definitions, billing_settings TO app_runtime;
 GRANT SELECT, INSERT, UPDATE ON coupons, expenses, platform_settings TO app_runtime;
+GRANT SELECT, INSERT, UPDATE ON subscription_upgrades TO app_runtime;
 GRANT SELECT, INSERT, UPDATE ON webhook_events TO app_runtime;
 GRANT SELECT, INSERT ON security_events, system_health_checks TO app_runtime;
 GRANT SELECT, INSERT, UPDATE ON backup_runs TO app_runtime;

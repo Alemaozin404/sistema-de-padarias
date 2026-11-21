@@ -2,11 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthError, requireTenant } from "@/lib/auth";
 import { getTenantOverview } from "@/modules/billing/queries";
+import { listUpgradeOptions } from "@/modules/billing/upgrades";
 import { listInvoices, type InvoiceRow } from "@/modules/billing/service";
 import { isGatewayConfigured } from "@/modules/billing/gateway";
 import { todayIso } from "@/modules/billing/rules";
 import { formatBRL } from "@/modules/shared/money";
-import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm, RequestCancellationForm, RequestRefundForm } from "@/components/billing/billing-forms";
+import { CancelChargeForm, ChargeForm, CheckoutForm, ReconcileForm, RequestCancellationForm, RequestRefundForm, UpgradeForm } from "@/components/billing/billing-forms";
+import { pendingRemainingCents } from "@/modules/billing/upgrades";
 import { listRefundRequests } from "@/modules/billing/refunds";
 import { MercadoPagoCheckout } from "@/components/billing/mercadopago-checkout";
 import type { SubscriptionStatus } from "@/modules/plans/entitlements";
@@ -35,6 +37,7 @@ const INVOICE_STATUS_LABEL: Record<string, string> = {
 const INVOICE_KIND_LABEL: Record<string, string> = {
   INITIAL: "Primeira cobrança",
   RENEWAL: "Renovação",
+  UPGRADE: "Upgrade de plano",
 };
 
 function formatDate(value: Date | string | null): string {
@@ -75,6 +78,15 @@ export default async function AssinaturaPage() {
     listInvoices(membership.tenantId),
     listRefundRequests(membership.tenantId),
   ]);
+
+  const upgradeOptions =
+    overview?.subscription?.status === "ACTIVE"
+      ? await listUpgradeOptions(membership.tenantId)
+      : [];
+  const remainingScheduled =
+    overview?.subscription?.status === "ACTIVE"
+      ? await pendingRemainingCents(membership.tenantId)
+      : 0;
 
   const refundedProcessed = refundRequests.find((r) => r.status === "PROCESSED");
 
@@ -292,6 +304,60 @@ export default async function AssinaturaPage() {
               Nenhuma cobrança em aberto. Próximo vencimento:{" "}
               {formatDate(subscription.nextDueDate)}.
             </p>
+          ) : null}
+
+          {upgradeOptions.length > 0 ? (
+            <section className="rounded-2xl border border-border bg-surface p-6">
+              <h2 className="text-lg font-semibold">Upgrade de plano</h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                Evolua sua assinatura com 25% de desconto: pague 50% agora e 50% na próxima mensalidade.
+                {remainingScheduled > 0 ? (
+                  <span className="ml-1">
+                    Próxima mensalidade incluirá {formatBRL(remainingScheduled)} de upgrade.
+                  </span>
+                ) : null}
+              </p>
+              <div className="mt-4 space-y-4">
+                {upgradeOptions.map((opt) => (
+                  <div key={opt.plan.id} className="rounded-xl border border-border p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">{opt.plan.name}</p>
+                        <p className="text-sm text-ink-muted">{formatBRL(opt.plan.priceCents)}/mês</p>
+                      </div>
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                        25% de desconto
+                      </span>
+                    </div>
+                    <dl className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
+                      <div className="flex justify-between gap-4 border-b border-border py-1">
+                        <dt className="text-ink-muted">Preço original</dt>
+                        <dd>{formatBRL(opt.quote.originalAmountCents)}</dd>
+                      </div>
+                      <div className="flex justify-between gap-4 border-b border-border py-1">
+                        <dt className="text-ink-muted">Desconto 25%</dt>
+                        <dd>-{formatBRL(opt.quote.discountAmountCents)}</dd>
+                      </div>
+                      <div className="flex justify-between gap-4 border-b border-border py-1">
+                        <dt className="text-ink-muted">Preço final</dt>
+                        <dd>{formatBRL(opt.quote.finalAmountCents)}</dd>
+                      </div>
+                      <div className="flex justify-between gap-4 border-b border-border py-1">
+                        <dt className="text-ink-muted">Entrada (50%)</dt>
+                        <dd>{formatBRL(opt.quote.entryAmountCents)}</dd>
+                      </div>
+                      <div className="flex justify-between gap-4 py-1">
+                        <dt className="text-ink-muted">Restante (próxima mensalidade)</dt>
+                        <dd>{formatBRL(opt.quote.remainingAmountCents)}</dd>
+                      </div>
+                    </dl>
+                    <div className="mt-3 max-w-xs">
+                      <UpgradeForm toPlanId={opt.plan.id} label="Contratar upgrade" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           ) : null}
 
           <section className="rounded-2xl border border-border bg-surface p-6">

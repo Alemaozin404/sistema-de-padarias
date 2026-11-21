@@ -3,6 +3,7 @@ import { getPayment } from "./gateway";
 import {
   applyConfirmedPayment,
   getInvoice,
+  handleUpgradeRefund,
   markInvoiceOverdue,
   markInvoiceRefunded,
 } from "./service";
@@ -84,6 +85,12 @@ export async function processMercadoPagoEvent(
       gateway: "MERCADOPAGO",
       gatewayPaymentId: payment.id,
     });
+
+    try {
+      await handleUpgradeRefund({ tenantId: reference.tenantId, invoiceId: invoice.id });
+    } catch {
+      // não interrompe o processamento do webhook
+    }
 
     // Se havia solicitação de reembolso aberta para esta fatura, confirma o
     // processamento (encerra assinatura e bloqueia acesso).

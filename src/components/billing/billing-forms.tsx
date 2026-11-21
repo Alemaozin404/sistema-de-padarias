@@ -9,6 +9,7 @@ import {
   rejectRefundAction,
   requestCancellationAction,
   requestRefundAction,
+  requestUpgradeAction,
   startCheckoutAction,
   type BillingActionState,
 } from "@/modules/billing/actions";
@@ -155,6 +156,25 @@ export function RequestCancellationForm() {
         className="rounded-lg border border-red-600 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
       >
         {pending ? "Processando…" : "Solicitar cancelamento"}
+      </button>
+    </form>
+  );
+}
+
+export function UpgradeForm({ toPlanId, label }: { toPlanId: string; label: string }) {
+  const [state, formAction, pending] = useActionState(requestUpgradeAction, initialState);
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <input type="hidden" name="toPlanId" value={toPlanId} />
+      <Feedback state={state} />
+      <DocumentField hint="Preencha apenas se o documento ainda não estiver cadastrado." />
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+      >
+        {pending ? "Processando…" : label}
       </button>
     </form>
   );
