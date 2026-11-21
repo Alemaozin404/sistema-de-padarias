@@ -286,15 +286,24 @@ export async function requestUpgrade(input: {
     return { upgrade: { ...createdUpgrade, entryInvoiceId: invoice.id }, invoice, toPlan, fromPlan };
   });
 
-  // Gera cobrança Pix para a entrada.
-  const charged = await ensureChargeForInvoice({
-    tenantId: input.tenantId,
-    invoiceId: context.invoice.id,
-    actorId: input.actorId,
-    document: input.document,
-  });
-
-  return { upgrade: context.upgrade, invoice: charged };
+  // Gera cobrança Pix para a entrada. Se falhar, desfaz o upgrade para não
+  // deixar operação pendente bloqueando novas tentativas.
+  try {
+    const charged = await ensureChargeForInvoice({
+      tenantId: input.tenantId,
+      invoiceId: context.invoice.id,
+      actorId: input.actorId,
+      document: input.document,
+    });
+    return { upgrade: context.upgrade, invoice: charged };
+  } catch (error) {
+    await cancelPendingUpgrade({
+      tenantId: input.tenantId,
+      upgradeId: context.upgrade.id,
+      actorId: input.actorId,
+    }).catch(() => undefined);
+    throw error;
+  }
 }
 
 /** Confirma upgrade após pagamento da entrada (chamado internamente). */

@@ -61,7 +61,11 @@ function accessToken(): string | undefined {
 }
 
 export function isGatewayConfigured(): boolean {
-  return Boolean(accessToken());
+  const token = accessToken();
+  if (!token) return false;
+  // Tokens reais do Mercado Pago começam com TEST- (sandbox) ou APP_USR- (produção).
+  // Placeholders como "[SENSITIVE]" não devem ser considerados configurados.
+  return token.startsWith("TEST-") || token.startsWith("APP_USR-");
 }
 
 function baseUrl(): string {
